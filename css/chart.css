@@ -127,3 +127,61 @@ body.chartmode{font-size:13px}
 @media (max-width:1150px){.land{grid-template-columns:1fr}.cb-id{min-width:300px}}
 @media (max-width:760px){body.chartmode main{padding:0;overflow:auto}.cb{height:auto;flex-wrap:wrap}.cb-id{min-width:0;width:100%;clip-path:none;padding:6px 8px 6px 18px}.cb-cells{flex-wrap:wrap;padding:4px}.cb-cell{padding:2px 4px}.cb-cell.opt,.cb-opts{display:none}
  .cwrap{flex-direction:row}.cslide,.cslide.wide{width:calc(100vw - 42px)}.cdetail{min-width:0}.pi{grid-template-columns:1fr}.cslide.docked{display:none}.cslide.docked.mshow{display:flex;position:absolute}}
+/* ---- density pass (round 2) ---- */
+body.chartmode #rail,body.chartmode #statusbar{display:none}
+body.chartmode main{padding:0}
+body.chartmode{font-size:12px}
+body.chartmode #simbanner{font-size:11px;padding:1px 8px}
+body.chartmode .simtag{font-size:10px}
+body.chartmode .simctl input,body.chartmode .simctl button{font-size:11px;padding:0 5px}
+body.chartmode #topnav{height:22px}
+body.chartmode .brand{font-size:13px;margin-right:8px}
+body.chartmode .menus>li{font-size:12px;padding:0 7px;font-weight:600}
+body.chartmode .menus .sub{top:22px}
+body.chartmode .menus .sub a{font-size:12px;padding:3px 12px}
+body.chartmode #psearch{height:17px}body.chartmode #psearch input{height:15px;font-size:11px;width:105px}body.chartmode #psearch .pico{height:15px}body.chartmode #psearch .mag{height:17px;width:18px}
+body.chartmode .uname,body.chartmode .logout{font-size:12px}
+body.chartmode .notify{font-size:11.5px;min-height:18px;padding:1px 6px}
+.cb{height:60px}
+.cb-nm{font-size:14px}.cb-legal{font-size:10.5px}.cb-l2{font-size:11px}
+.cb-cell{flex:1 1 0;max-width:210px}
+.cb-cell .lbl{font-size:10px}.cb-cell .val{font-size:11px;height:19px;max-width:none}
+@media (max-width:1400px){.cb-cell.opt{display:flex}}
+@media (max-width:1100px){.cb-cell.opt{display:none}}
+.cwrap{position:relative}
+.cwrap>.cb-opts{position:absolute;top:0;right:0;z-index:2;display:flex;flex-direction:row;align-items:center;gap:6px;padding:3px 8px;font-size:11px;color:#4b4f6b;background:transparent}
+.bo-ic{color:#5b4790}
+.cwrap>.cb-opts .ham{width:15px;height:13px;background:#5b4790;border:0}
+.cstage{padding:20px 8px 8px}
+.land{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+@media (max-width:1150px){.land{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.lcard .bb{padding:5px 9px}
+.pi{gap:12px}.pi h5{font-size:12px;margin:3px 0 2px}.pi li{font-size:11.5px;padding:1px 0;line-height:15px;border-bottom:1px solid #f0f0f3}
+.ttl2{font-size:13px;padding:6px 9px 1px}.rtabs{font-size:12px}.ord{font-size:11.5px}.gray{font-size:10.5px}.vsub{font-size:11.5px}
+/* slide-outs */
+.cslide{width:clamp(205px,12vw,260px)}
+.cslide.wide{width:clamp(230px,15vw,320px)}
+.cslide .sh{font-size:16px;padding:6px 9px 3px}
+.cslide .ss{font-size:10.5px}
+.cslide .grp{background:#ebe8f1;color:#5b4790;border-bottom:1px solid #dcd7e6;padding:4px 9px;font-size:11.5px}
+.vrow{font-size:11px;padding:5px 9px;line-height:1.3;border-bottom:1px solid #e6e6ea;position:relative}
+.vrow .t{font-size:11.5px}.vrow .g{font-size:10.5px}
+.vrow.sel{background:#fff;color:#555;margin:4px 5px;padding:6px 26px 6px 7px;border:1px solid #d8d8de;box-shadow:0 2px 6px rgba(0,0,0,.18);border-radius:2px}
+.vrow.sel .t{color:#2a6ebb}.vrow.sel .d,.vrow.sel .g{color:#777}
+.vrow.sel .inner{background:none;color:#777;margin-top:3px;padding:3px 0 0;border-top:1px solid #eee;font-size:10.5px}
+.collapse.rowc{position:absolute;right:-11px;top:50%;transform:translateY(-50%);width:20px;height:20px;font-size:11px;z-index:3;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.rrow{font-size:11.5px;padding:5px 9px;border-bottom:1px solid #e6e6ea;position:relative}
+.rrow .g{font-size:10.5px}
+.rrow.sel{background:#fff;color:#333;margin:4px 5px;padding:6px 26px 6px 7px;border:1px solid #d8d8de;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.rrow.sel .n{color:#2a6ebb}.rrow.sel .g{color:#777}.rrow.sel .f{color:#888}.rrow.sel .f.abn{color:#d0342c}.rrow.sel .trend{visibility:visible}
+.cslide.docked{overflow:visible}.cslide.docked .sb{overflow-y:auto;overflow-x:visible}
+/* summary pane */
+.cdetail .dh{padding:6px 10px}.cdetail .dh h2{font-size:16px}
+.dbody{padding:6px 12px 70px}
+.vtitle{font-size:12px}.vsub{font-size:11.5px}
+.esec{padding:6px 0 7px;border-top:1px solid #e8e8ec}
+.esec h4{font-size:11.5px;color:#5a5578;font-weight:600;margin-bottom:2px}
+.esec .none{font-size:11px;color:#999}.esec .val{font-size:11.5px}
+.rdoc .frow{font-size:11.5px;padding:3px 0}.rbox table,.hist{font-size:11px}.rbox th,.hist th{padding:3px 6px}.rbox td,.hist td{padding:3px 6px}
+.crail{width:40px}.crail a{width:38px;font-size:8px;padding:4px 0 2px}.crail a svg{width:18px;height:18px}
+@media (max-width:760px){.land{grid-template-columns:1fr}.cstage{padding-top:22px}}

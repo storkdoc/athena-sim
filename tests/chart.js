@@ -4,7 +4,7 @@ const base=process.env.BASE||'http://localhost:8765/';
 (async()=>{
  const b=await chromium.launch();const errs=[];let fails=0;
  const ok=(c,m)=>{console.log((c?'PASS ':'FAIL ')+m);if(!c)fails++;};
- for(const W of [1280,1024]){
+ for(const W of [1920,1680,1280,1024]){
   const ctx=await b.newContext({viewport:{width:W,height:860}});const pg=await ctx.newPage();
   pg.on('pageerror',e=>errs.push(W+' '+e.message));pg.on('console',m=>{if(m.type()==='error')errs.push(W+' '+m.text());});
   await pg.goto(base+'?simdate=2026-11-25#/dashboard');await pg.waitForSelector('#loading.hidden',{state:'attached',timeout:30000});

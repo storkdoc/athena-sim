@@ -3,7 +3,7 @@
 (function(){
 const C=SIMCORE,D=SIMDATA,S=SIMSTATE,A=SIMAPP,esc=C.esc;
 const $=s=>document.querySelector(s);
-const DEPT='SIM_CNGRSL_MAIN';
+const DEPT='SIM_CNGRSL_Fallsgrove';
 const MAUVE='#b06f96';
 const ic=(p)=>'<svg viewBox="0 0 24 24" fill="none" stroke="'+MAUVE+'" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>';
 const ICONS={
@@ -20,7 +20,7 @@ const ICONS={
  care:ic('<circle cx="8.5" cy="8" r="3"/><circle cx="16.5" cy="9" r="2.5"/><path d="M3 20c0-3.5 2.5-6 5.5-6s5.5 2.5 5.5 6M14 14.5c3.5-.5 6.5 1.5 7 5"/>'),
  apps:ic('<rect x="4" y="4" width="6.5" height="6.5"/><rect x="13.5" y="4" width="6.5" height="6.5"/><rect x="4" y="13.5" width="6.5" height="6.5"/><path d="M16.75 13.5v6.5M13.5 16.75H20"/>')};
 const RAIL=[['find','Find'],['allergies','Allergies'],['problems','Problems'],['meds','Meds'],['vaccines','Vaccines'],['vitals','Vitals'],['results','Results'],['visits','Visits'],['history','History'],['quality','Quality'],['care','Care'],['apps','Apps']];
-const VTITLE={NOB:'New OB Visit',ROB:'OB Visit',PP:'Postpartum Visit',INC:'Postop Visit',WWV:'Wellness Visit',PROB:'Office Visit',TELE:'Virtual Visit',COLPO:'Colposcopy',PROC:'Procedure Visit',US:'Ultrasound Visit'};
+const VTITLE={NOB:'New OB',ROB:'OB visit',PP:'Postpartum',INC:'Postop Visit',WWV:'Wellness Visit',PROB:'Office Visit',TELE:'Privia Virtual Visit',COLPO:'Colposcopy',PROC:'Procedure Visit',US:'Ultrasound Visit'};
 const now=()=>D.now;
 function pv(id){return D.provById(id)||{full:id,bfull:id,cred:''};}
 function provLine(id){const p=pv(id);return p.full+', '+p.cred+', OB/GYN';}
@@ -43,7 +43,7 @@ function vStatus(v){
  if(v.unsigned||v.day+v.signLag>=n)return 'OPEN';
  return D.COMPLETED(st)?'CLOSED':'OPEN';
 }
-function vTitle(v,withState){const t=VTITLE[v.type]||'Office Visit';const s=vStatus(v);
+function vTitle(v,withState){const t=v.tele?'Privia Virtual Visit':(VTITLE[v.type]||'Office Visit');const s=vStatus(v);
  if(!withState)return t;if(s==='UPCOMING')return t.toLowerCase()+' (upcoming)';if(s==='OPEN')return t+' (OPEN)';if(s==='CANCELLED')return t+' (CANCELLED)';if(s==='NO SHOW')return t+' (NO SHOW)';return t;}
 function genEnc(v){
  const p=D.byId[v.pid];const x=D.vitals(v);const pg=v.preg&&v.day<v.preg.end?v.preg:null;const res=D.resultsForVisit(v);
@@ -88,9 +88,9 @@ function banner(p){
  const cell=(lbl,k,t,more,cls)=>'<div class="cb-cell '+(cls||'')+'"><span class="lbl">'+lbl+'</span><span class="val">'+(k?'<span class="k">'+k+'</span>':'')+'<span class="t">'+esc(t)+'</span>'+(more?'<span class="more">+'+more+'</span>':'')+'</span></div>';
  return '<div class="cb" role="banner" aria-label="Patient banner"><div class="cb-id">'+photo+'<div><div class="cb-nm">'+esc(p.first)+'<span class="lst">'+esc(p.last.toUpperCase())+'</span></div><div class="cb-legal">Legal: '+esc(p.first+' '+p.middle+' '+p.last.toUpperCase())+'</div>'+
  '<div class="cb-l2">'+age+'yo F | she/her | '+C.mdy(p.dob)+' | #'+p.id+' | '+p.eid+' <span class="cb-chip">'+esc(p.lang.slice(0,3).toUpperCase())+'</span><span class="cb-notes" title="Patient notes"></span></div></div><span class="cb-down" id="cbdown" title="More patient info">&#9660;</span></div>'+
- '<div class="cb-cells">'+cell('Contact','Mobile',p.phone,p.mobile2?1:0)+cell('Appointments','Next',nx?(nx.tele?'Virtual Visit ':VTITLE[nx.type]+' ')+C.mdy(nx.day)+' '+C.fmtTime(nx.start):'None',fut.length>1?fut.length-1:0)+
+ '<div class="cb-cells">'+cell('Contact','Mobile',p.phone,p.mobile2?1:0)+cell('Appointments','Next',nx?(VTITLE[nx.type]+' ')+C.mdy(nx.day)+' '+C.fmtTime(nx.start):'None',fut.length>1?fut.length-1:0)+
  cell('Provider','',pv(p.prov).bfull+', '+pv(p.prov).cred)+cell('Insurance','Primary',D.PAYERS[p.payer],p.secondary?1:0)+cell('Patient Dismissed','','N/A',0,'na opt')+cell('Accommodations Needed','','N/A',0,'na opt')+cell('Research','','N/A',0,'na opt')+'</div>'+
- '<div class="cb-opts"><span>Banner Options &#9881;</span><span class="ham"><i></i><i></i><i></i></span></div>'+
+ 
  '<div class="cb-expand" id="cbexpand"><b>'+esc(p.first+' '+p.middle+' '+p.last)+'</b> (fictitious)<br>'+esc(p.addr+', '+p.city+', '+p.st+' '+p.zip)+'<br>'+esc(p.email)+'<br>Pharmacy: '+esc(p.pharm)+'<br>Primary: '+esc(D.PAYERS[p.payer])+' &middot; '+p.memberId+(p.secondary?'<br>Secondary: '+esc(p.secondary):'')+'<br>Blood type: '+p.blood+' &middot; '+D.gp(p,n)+'</div></div>';
 }
 function rail(p,panel){const nAll=allergyList(p).length;
@@ -115,7 +115,10 @@ function landing(p){
  const vs=visitsOf(p).filter(v=>v.day<=n&&!['CANCELLED','NO SHOW','UPCOMING'].includes(vStatus(v))).sort((a,b)=>b.day-a.day||b.start-a.start);
  const last=vs[0];
  const pending=[];for(const v of visitsOf(p)){if(v.day>n||v.day<n-120||v.fate!=='ok')continue;if(!D.COMPLETED(D.apptStatus(v))&&v.day===n)continue;for(const r of D.resultsForVisit(v))if(D.abs(r.day,r.min)>D.nowAbs())pending.push({r,v});}
+ standingOrders(p).forEach(o=>pending.push(o));
+ pending.sort((a,b)=>b.v.day-a.v.day);
  const fut=visitsOf(p).filter(v=>vStatus(v)==='UPCOMING').sort((a,b)=>a.day-b.day||a.start-b.start).slice(0,3);
+ if(fut.length<2){const lw=vs.find(v=>v.type==='WWV')||vs[0];if(lw){const due=lw.day+365;if(!fut.some(f=>f.type==='WWV'))fut.push({recall:true,day:Math.max(due,n+14),start:0,type:'WWV',prov:lw.prov,reason:'annual exam (recall)'});}}
  let lastHtml='None recorded';
  if(last){const e=encData(last);lastHtml='<div><a class="bluelink" href="#/chart/'+p.id+'/visits/'+last.id+'">'+esc(vTitle(last,false))+', '+C.mdy(last.day)+(vStatus(last)==='OPEN'?' (OPEN)':'')+'</a></div><div class="vsub">'+esc(last.reason)+'</div><div class="vsub">Performed by '+esc(provLine(last.prov))+', (555) 555-0100</div><div class="vsub" style="margin-top:3px">'+(e.ap&&e.ap.length?e.ap.map(a=>esc(a.dx)+(a.code?' ('+esc(a.code)+')':'')).join('<br>'):'None recorded')+'</div>';}
  const recent=D.patientResults(p).map(r=>({t:D.abs(r.day,r.min),h:esc(r.name)+' <span class="gray">'+r.kind+' result</span>',href:'#/chart/'+p.id+'/results/'+r.id})).concat(D.patientDocs(p).map(d=>({t:D.abs(d.day,d.min),h:esc(d.name)+' <span class="gray">document</span>',href:'#/chart/'+p.id+'/history'}))).concat(D.patientCases(p.id).map(c=>({t:D.abs(c.day,c.min),h:esc(c.name)+' <span class="gray">'+esc(c.kind)+'</span>',href:'#/chart/'+p.id+'/visits'}))).sort((a,b)=>b.t-a.t).slice(0,8);
@@ -126,18 +129,28 @@ function landing(p){
  '<h5>Medications<span class="gear2" title="Medication settings"></span></h5>'+li(md,m=>'<li><a href="#/chart/'+p.id+'/meds">'+esc(m.name)+'</a></li>')+'</div></div></div></div>'+
  '<div><div class="lcard"><div class="rtabs"><a data-lt="last" class="'+(landTab==='last'?'on':'')+'">Last Visit with OB/GYN</a><a data-lt="recent" class="'+(landTab==='recent'?'on':'')+'">Recent Activity</a><span class="gear2" title="Settings"></span></div><div class="bb">'+
  (landTab==='last'?lastHtml:(recent.length?recent.map(x=>'<div class="ord"><a href="'+x.href+'">'+x.h+'</a><span class="dt">'+absToDT(x.t).slice(0,10)+'</span></div>').join(''):'None recorded'))+'</div></div>'+
- '<div class="lcard"><div class="ttl2">Outstanding Orders</div><div class="bb"><div class="sub2">OB/GYN</div>'+(pending.length?pending.map(({r,v})=>'<div class="ord"><span>'+esc(r.name)+'-'+String(r.num).slice(-6)+'-P (followup)</span><span class="dt">'+C.mdy(v.day)+'</span></div><div class="gray">'+esc(pv(v.prov).bfull+', '+pv(v.prov).cred)+', OB/GYN</div>').join(''):'<div class="gray">No outstanding orders</div>')+
+ '<div class="lcard"><div class="ttl2">Outstanding Orders</div><div class="bb"><div class="sub2">OB/GYN</div>'+(pending.length?pending.map(({r,v})=>'<div class="ord"><span>'+esc(r.label||(r.name+'-'+String(r.num).slice(-6)+'-P (followup)'))+'</span><span class="dt">'+C.mdy(v.day)+'</span></div><div class="gray">'+esc(pv(v.prov).bfull+', '+pv(v.prov).cred)+', OB/GYN</div>').join(''):'<div class="gray">No outstanding orders</div>')+
  '<div class="sub2">Other Specialties</div><div class="gray">No outstanding orders</div></div></div>'+
- '<div class="lcard"><div class="ttl2">Follow Up</div><div class="bb">'+(fut.length?fut.map(v=>'<div style="font-size:12px;margin-top:3px">'+C.mdy(v.day)+' at '+C.fmtTime(v.start)+' for '+esc((v.tele?'virtual visit':VTITLE[v.type]).toLowerCase())+(v.day===n?' (today)':'')+'</div><div class="gray">'+esc(pv(v.prov).full+', '+pv(v.prov).cred)+' | '+DEPT+' | '+esc(v.reason)+'</div>').join(''):'<div class="gray">No follow up scheduled</div>')+'</div></div></div></div>';
+ '<div class="lcard"><div class="ttl2">Follow Up</div><div class="bb">'+(fut.length?fut.map(v=>'<div style="margin-top:3px">'+C.mdy(v.day)+(v.recall?'':' at '+C.fmtTime(v.start))+' for '+esc((v.tele?'privia virtual visit':VTITLE[v.type]).toLowerCase())+(v.day===n?' (today)':'')+'</div><div class="gray">'+esc(pv(v.prov).full+', '+pv(v.prov).cred)+' | '+DEPT+' | '+esc(v.reason)+'</div>').join(''):'<div class="gray">No follow up scheduled</div>')+'</div></div></div></div>';
 }
 
+function standingOrders(p){
+ const n=now().day;const out=[];const age=C.ageAt(p.dob,n);const vs=visitsOf(p).filter(v=>v.day<=n&&v.fate==='ok'&&!v.booked).sort((a,b)=>b.day-a.day);
+ const lw=vs.find(v=>v.type==='WWV')||vs[0];if(!lw)return out;const pg=D.pregAt(p,n);const lv=vs[0];
+ const mk=(label,v)=>({r:{label},v});
+ if(!pg&&age>=21&&age<=65)mk&&out.push(mk('igp, aptima HPV, rfx 16/18,45-'+String(C.h01(p.id+'pap')*1e6|0).padStart(6,'0')+'-P (followup)',lw));
+ if(!pg&&age>=40)out.push(mk('mammogram, screening, bilateral w/ tomo-'+String(C.h01(p.id+'mm')*1e6|0).padStart(6,'0')+'-P (followup)',lw));
+ if(!pg&&age>=45&&C.h01(p.id+'lip')<0.6)out.push(mk('lipid panel-'+String(C.h01(p.id+'lp')*1e6|0).padStart(6,'0')+'-P (followup)',lw),mk('hemoglobin A1C-'+String(C.h01(p.id+'a1')*1e6|0).padStart(6,'0')+'-P (followup)',lw));
+ if(!pg&&age>=50&&C.h01(p.id+'dx')<0.5)out.push(mk('DXA bone density, axial skeleton (followup)',lw));
+ if(pg){const w=C.ga(pg.lmp,n).w;if(w<24)out.push(mk('glucose tolerance, 1 hr (50 g) (followup, 24-28 wks)',lv));if(w<35)out.push(mk('group B strep culture (followup, 36 wks)',lv));if(w<30)out.push(mk('US OB follow-up / growth (followup)',lv));out.push(mk('CBC w/o differential (followup, 28 wks)',lv));}
+ return out;}
 // ---------- visits panel ----------
 function visitEvents(p){
  const n=now().day;
  const vs=visitsOf(p).filter(v=>v.day<=n+180).map(v=>({kind:'visit',v,t:D.abs(v.day,v.start)}));
  const cs=D.patientCases(p.id).filter(c=>c.folder==='Patient Cases'||c.folder==='Orders / Rxs / Auths').map(c=>({kind:'case',c,t:D.abs(c.day,c.min)}));
  let ev=vs.concat(cs);if(visitShow==='visits')ev=vs;if(visitShow==='cases')ev=cs;
- const up=ev.filter(e=>e.kind==='visit'&&vStatus(e.v)==='UPCOMING').sort((a,b)=>a.t-b.t);
+ const up=ev.filter(e=>e.kind==='visit'&&vStatus(e.v)==='UPCOMING').sort((a,b)=>a.t-b.t).slice(0,2);
  const rest=ev.filter(e=>!(e.kind==='visit'&&vStatus(e.v)==='UPCOMING')).sort((a,b)=>b.t-a.t);
  return {list:up.concat(rest),total:vs.length+cs.length,nv:vs.length,nc:cs.length};
 }
@@ -147,8 +160,8 @@ function visitsPanel(p,selId,docked){
   if(e.kind==='case'){const c=e.c;const open=D.itemOpen(c);return '<a class="vrow" href="#/chart/'+p.id+'/visits/case:'+c.id+'" data-case="'+c.id+'"><div class="t">'+esc(c.kind==='Patient case'?'Patient Case':c.kind)+(open?' (OPEN)':'')+'</div><div class="d">'+esc(c.name)+'</div><div class="g">'+fmtDT(c.day,c.min)+', '+esc(pv(c.prov).full+', '+pv(c.prov).cred)+'</div></a>';}
   const v=e.v;const sel=v.id===selId;const enc=encData(v);
   const dx=enc.ap&&enc.ap.length?enc.ap.map(a=>esc(a.dx)).join('<br>'):'';const ords=v.fate==='ok'&&vStatus(v)!=='UPCOMING'?D.resultsForVisit(v).map(r=>esc(r.name)).join('<br>'):'';
-  return '<a class="vrow'+(sel?' sel':'')+'" href="#/chart/'+p.id+'/visits/'+v.id+'" data-visit="'+v.id+'"><div class="t">'+esc(vTitle(v,true))+'</div><div class="d">'+DEPT+'</div><div class="d">'+esc(v.reason)+'</div><div class="g">'+fmtDT(v.day,v.start)+', '+esc(provLine(v.prov))+'</div>'+(sel?'<div class="inner">'+(dx||ords?(dx?'<b>Dx:</b> '+dx:'')+(ords?'<br><b>Orders:</b> '+ords:''):'No diagnoses or orders')+'</div>':'')+'</a>';}).join('');
- return '<aside class="cslide'+(docked?' docked':'')+'" aria-label="Visits and Cases"><div class="sh">Visits and Cases'+(docked?'<button class="collapse" id="collapse" title="Collapse" style="margin-left:auto">&laquo;</button>':'<a class="x" href="#/chart/'+p.id+'" title="Close">&times;</a>')+'</div>'+
+  return '<a class="vrow'+(sel?' sel':'')+'" href="#/chart/'+p.id+'/visits/'+v.id+'" data-visit="'+v.id+'">'+(sel?'<button class="collapse rowc" id="collapse" title="Collapse">&laquo;</button>':'')+'<div class="t">'+esc(vTitle(v,true))+'</div><div class="d">'+DEPT+'</div><div class="d">'+esc(v.reason)+'</div><div class="g">'+fmtDT(v.day,v.start)+', '+esc(provLine(v.prov))+'</div>'+(sel?'<div class="inner">'+(dx||ords?(dx?'<b>Dx:</b> '+dx:'')+(ords?'<br><b>Orders:</b> '+ords:''):'No diagnoses or orders')+'</div>':'')+'</a>';}).join('');
+ return '<aside class="cslide'+(docked?' docked':'')+'" aria-label="Visits and Cases"><div class="sh">Visits and Cases'+(docked?'':'<a class="x" href="#/chart/'+p.id+'" title="Close">&times;</a>')+'</div>'+
  '<div class="ss">Arrange by: <span class="dd">Specialty &#9662;</span><span class="r">SHOW: <select id="vshow"><option value="all"'+(visitShow==='all'?' selected':'')+'>All Events ('+ev.total+')</option><option value="visits"'+(visitShow==='visits'?' selected':'')+'>Visits ('+ev.nv+')</option><option value="cases"'+(visitShow==='cases'?' selected':'')+'>Cases ('+ev.nc+')</option></select></span></div>'+
  '<div class="sb"><div class="grp">OB/GYN</div>'+(rows||'<div class="gray" style="padding:10px">No events</div>')+(ev.list.length>lim?'<div class="viewall" id="viewall">View all ('+(ev.list.length-lim)+' more)</div>':'')+'</div></aside>';
 }
@@ -234,8 +247,8 @@ function casePane(p,c){const open=D.itemOpen(c);
 function resultsPanel(p,selId,docked){
  const labs=labsOf(p),imgs=imgsOf(p);const list=resTab==='img'?imgs:labs;
  const rows=list.map(r=>{const f=flagOf(r);const hist=sameCode(p,r).length-1;
-  return '<a class="rrow'+(r.id===selId?' sel':'')+'" href="#/chart/'+p.id+'/results/'+r.id+'" data-res="'+r.id+'"><div><div class="n">'+esc(r.name)+'</div><div class="g">'+fmtDT(r.day,r.min)+(hist>0?' &middot; '+hist+' Historical':'')+'</div></div><span class="f '+(f==='abnormal'?'abn':'')+'"><span class="trend"></span>'+f+'</span></a>';}).join('');
- return '<aside class="cslide wide'+(docked?' docked':'')+'" aria-label="Results"><div class="sh">Results'+(docked?'<button class="collapse" id="collapse" style="margin-left:auto" title="Collapse">&laquo;</button>':'<a class="x" href="#/chart/'+p.id+'" title="Close">&times;</a>')+'</div>'+
+  return '<a class="rrow'+(r.id===selId?' sel':'')+'" href="#/chart/'+p.id+'/results/'+r.id+'" data-res="'+r.id+'"><div><div class="n">'+esc(r.name)+'</div><div class="g">'+fmtDT(r.day,r.min)+(hist>0?' &middot; '+hist+' Historical':'')+'</div></div><span class="f '+(f==='abnormal'?'abn':'')+'"><span class="trend"></span>'+f+'</span>'+(r.id===selId?'<button class="collapse rowc" id="collapse" title="Collapse">&laquo;</button>':'')+'</a>';}).join('');
+ return '<aside class="cslide wide'+(docked?' docked':'')+'" aria-label="Results"><div class="sh">Results'+(docked?'':'<a class="x" href="#/chart/'+p.id+'" title="Close">&times;</a>')+'</div>'+
  '<div class="ctabs"><a data-rt="lab" class="'+(resTab==='lab'?'on':'')+'">Lab Results'+(labs.length?' ('+labs.length+')':'')+'</a><a data-rt="img" class="'+(resTab==='img'?'on':'')+'">Imaging Results ('+imgs.length+')</a></div>'+
  '<div class="sb">'+(rows||'<div class="gray" style="padding:10px">No results as of the sim date.</div>')+'</div></aside>';
 }
@@ -358,7 +371,8 @@ function render(pid,panel,item){
   side=collapsed?'':visitsPanel(p,item,true);
  } else if(panel==='results'&&item){const r=findResult(p,item);if(r){resTab=r.kind==='Imaging'?'img':'lab';detail=resultPane(p,r,view);}side=collapsed?'':resultsPanel(p,item,true);}
  const docked=!!detail;
- let html=banner(p)+'<div class="cwrap">'+rail(p,panel||'');
+ const opts='<div class="cb-opts"><span>Banner Options <span class="bo-ic">&#9881;</span></span><span class="ham" title="Chart menu"><i></i><i></i><i></i></span></div>';
+ let html=banner(p)+'<div class="cwrap">'+(docked?'':opts)+rail(p,panel||'');
  if(docked)html+=side+detail;
  else{let slide='';if(panel==='visits')slide=visitsPanel(p,null,false);else if(panel==='results')slide=resultsPanel(p,null,false);else if(panel&&ICONS[panel])slide=simplePanel(p,panel);
   html+='<div style="position:relative;flex:1;display:flex;min-width:0">'+slide+'<div class="cstage">'+landing(p)+'</div>'+(slide?'<div class="cdim" id="cdim"></div>':'')+'</div>';
@@ -372,8 +386,9 @@ function render(pid,panel,item){
  const dim=$('#cdim');if(dim)dim.onclick=()=>A.go('#/chart/'+p.id);
  const vsh=$('#vshow');if(vsh)vsh.onchange=()=>{visitShow=vsh.value;rerender();};
  const va=$('#viewall');if(va)va.onclick=()=>{visitAll=true;rerender();};
+ const rc=document.querySelector('.rowc');if(rc)rc.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();collapsed=true;rerender();});
  document.querySelectorAll('[data-rt]').forEach(a=>a.onclick=()=>{resTab=a.dataset.rt;if(panel==='results'&&item)A.go('#/chart/'+p.id+'/results');else rerender();});
- const cl=$('#collapse')||$('#collapse2');if(cl)cl.onclick=()=>{collapsed=true;rerender();};
+ const cl=$('#collapse2');if(cl)cl.onclick=()=>{collapsed=true;rerender();};
  const ex=$('#expand');if(ex)ex.onclick=()=>{collapsed=false;rerender();};
  if(panel==='visits'&&item&&!item.startsWith('case:')){const v=visitsOf(p).find(x=>x.id===item);if(v)bindEncounter(p,v);}
  if(panel==='visits'&&item&&item.startsWith('case:')){const c=D.patientCases(p.id).find(x=>x.id===item.slice(5));const b=$('#caseclose');if(b&&c)b.onclick=()=>{S.merge('inbox:'+c.id,{closed:true,at:D.nowAbs(),by:'sbehram3'});A.notify('Closed case.');rerender();};}
