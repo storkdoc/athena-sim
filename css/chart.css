@@ -187,3 +187,58 @@ body.chartmode .notify{font-size:11.5px;min-height:18px;padding:1px 6px}
 @media (max-width:760px){.land{grid-template-columns:1fr}.cstage{padding-top:22px}}
 .cb-photo img{width:44px;height:44px;object-fit:cover;display:block}
 .pphoto{width:34px;height:34px;object-fit:cover;flex:none}
+/* ---- readability pass (round 3): larger rail + chart text ---- */
+body.chartmode{font-size:14px}
+.crail{width:62px}
+.crail a{width:58px;font-size:11.5px;padding:7px 0 5px;line-height:1.15;color:#4a4a56}
+.crail a svg{width:30px;height:30px;margin-bottom:2px}
+.crail .badge{top:3px;right:8px;font-size:10px;min-width:15px;height:15px;line-height:15px;border-radius:8px}
+.cb{height:66px}
+.cb-photo{width:50px;height:50px}.cb-photo img,.cb-photo svg{width:50px;height:50px}
+.cb-nm{font-size:16px}.cb-legal{font-size:12px}.cb-l2{font-size:12.5px}.cb-chip{font-size:11px}
+.cb-cell .lbl{font-size:11.5px}.cb-cell .val{font-size:13px;height:22px}.cb-cell .val .k{font-size:12px}
+.cwrap>.cb-opts{font-size:12.5px}
+.cstage{padding:24px 10px 10px}
+.lcard .hb{font-size:12.5px;padding:6px 10px}.lcard .hb .plus{width:18px;height:18px;font-size:14px}
+.pi h5{font-size:15px;margin:6px 0 4px}.pi li{font-size:14px;line-height:22px;padding:0}
+.pi .none{font-size:14px}
+.ttl2{font-size:16px;padding:8px 10px 2px}.rtabs{font-size:14px}.rtabs a{padding:4px 0 6px}
+.sub2{font-size:14px;margin:8px 0 3px}.ord{font-size:14px;line-height:20px}.gray{font-size:12.5px}.vsub{font-size:14px;line-height:20px}
+.bluelink{font-size:14px}
+.cslide{width:clamp(250px,15vw,340px)}
+.cslide.wide{width:clamp(300px,19vw,420px)}
+.cslide .sh{font-size:20px;padding:8px 11px 4px}
+.cslide .ss,.cslide .ss select{font-size:12.5px}
+.cslide .grp{font-size:14px;padding:5px 11px}
+.vrow{font-size:13.5px;padding:7px 11px;line-height:1.45}
+.vrow .t{font-size:14px}.vrow .g{font-size:12.5px}
+.vrow.sel{padding:8px 28px 8px 9px}.vrow.sel .inner{font-size:12.5px}
+.collapse.rowc{width:24px;height:24px;font-size:13px;right:-12px}
+.viewall{font-size:12px}
+.ctabs{font-size:14px;gap:16px}
+.rrow{font-size:14px;padding:7px 11px;line-height:1.4}.rrow .g{font-size:12.5px}.rrow .f{font-size:13px}
+.rrow.sel{padding:8px 28px 8px 9px}
+.lrow{font-size:14px;padding:7px 11px;line-height:1.4}.lrow .g{font-size:12.5px}
+.addf,.addf input,.addf select{font-size:13.5px}
+.mini{font-size:13px}.mini th,.mini td{padding:5px 7px}
+.cdetail .dh{padding:8px 12px}.cdetail .dh h2{font-size:20px}
+.qmark{width:19px;height:19px;font-size:13px}
+.lnk{font-size:12.5px}.gbtn{font-size:13.5px;padding:4px 12px}
+.dbody{padding:10px 16px 80px}
+.vtitle{font-size:15px}
+.esec{padding:9px 0 10px}
+.esec h4{font-size:14.5px;margin-bottom:3px}
+.esec .none{font-size:13.5px}.esec .val{font-size:14px;line-height:1.5}
+.esec .ed textarea,.esec .ed input[type=text],.esec .ed select{font-size:14px}
+.esec .ed .row{font-size:14px}.esec .ed .row label.sys{width:150px}
+.rdoc .frow{font-size:14px;padding:4px 0;grid-template-columns:190px 1fr}
+.rdoc select{font-size:14px}
+.rbox table,.hist{font-size:13.5px}.rbox th,.hist th,.rbox td,.hist td{padding:5px 8px}
+.rbox pre{font-size:13px}
+.sticky{font-size:14px;padding:9px 14px}
+.actbox .row,.actbox textarea{font-size:14px}
+@media (max-width:1400px){.cb-cell.opt{display:none}}
+@media (max-width:760px){.crail{width:52px}.crail a{width:50px;font-size:10px}.crail a svg{width:24px;height:24px}.cslide,.cslide.wide{width:calc(100vw - 52px)}}
+body.chartmode #topnav{height:26px}body.chartmode .menus>li{font-size:13px}body.chartmode .menus .sub{top:26px}body.chartmode .menus .sub a{font-size:13.5px;padding:5px 14px}
+body.chartmode .uname,body.chartmode .logout{font-size:13px}body.chartmode .brand{font-size:14px}
+body.chartmode #simbanner{font-size:12px}body.chartmode .notify{font-size:13px;min-height:21px}
