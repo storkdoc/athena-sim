@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>athenaSim - SIMULATION (fictitious data) - Congressional OBGYN (SIM)</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/sim.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%236d5897'/%3E%3Ctext x='8' y='12' font-size='10' text-anchor='middle' fill='white' font-family='sans-serif'%3ES%3C/text%3E%3C/svg%3E">
+</head><body>
+<div id="simbanner" role="banner" aria-label="Simulation banner">
+ <span class="simtag">SIMULATION</span>
+ <span class="simmsg">All patients, names and data are fictitious. Not a real EHR. For testing only.</span>
+ <span class="simctl">
+  <label for="simdate">Sim date</label>
+  <button id="simprev" title="Previous day" aria-label="Previous day">&#9664;</button>
+  <input type="date" id="simdate">
+  <button id="simnext" title="Next day" aria-label="Next day">&#9654;</button>
+  <button id="simtoday">Today</button>
+  <span id="simclock" title="Sim clock follows your real local time of day"></span>
+  <button id="simreset" title="Clear all actions you took in the sim (check-ins, closed inbox items, bookings)">Reset sim</button>
+ </span>
+</div>
+<div id="topnav" role="navigation">
+ <a class="brand" href="#/dashboard" title="Home (simulation)">athena<b>Sim</b><sup>SIM</sup></a>
+ <ul class="menus" id="menus"></ul>
+ <div class="navright">
+  <form id="psearch" autocomplete="off"><span class="pico" aria-hidden="true"></span><input id="psearchbox" name="patientsearch" placeholder="Find patient" aria-label="Find patient (name or SIM ID)"><button type="submit" class="mag" aria-label="Search"></button><div id="psearchres" class="dropdown"></div></form>
+  <span class="bookmark" title="Bookmarks" aria-hidden="true"></span>
+  <span class="uname" id="uname">sbehram3</span>
+  <a href="#/loggedout" class="logout">Log out</a>
+ </div>
+</div>
+<div id="notify" class="notify"></div>
+<main id="main"></main>
+<div id="rail" aria-hidden="true"></div>
+<footer id="statusbar">
+ <span class="sb-spacer"></span>
+ <select id="dept" aria-label="Department"><option>SIM_CNGRSL_Main (fictitious)</option><option>SIM_CNGRSL_Satellite (fictitious)</option></select>
+ <span class="sb-cal" aria-hidden="true"></span>
+ <span class="sb-count blue" id="sbA">0</span><span class="sb-count red" id="sbB">0</span><span id="sbTasks">0 tasks</span>
+ <span class="sb-chat" id="sbChat">0</span>
+</footer>
+<div id="modal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-box"><div class="modal-hd"><span id="modalTitle"></span><button class="modal-x" aria-label="Close">&times;</button></div><div class="modal-bd" id="modalBody"></div></div></div>
+<div id="loading">Generating fictitious practice data&hellip;</div>
+<script src="js/core.js"></script>
+<script src="js/state.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body></html>
