@@ -39,7 +39,7 @@ const DATES=['2025-01-02','2025-08-15','2026-03-10','2026-11-25','2027-12-30'];
  for(const id of ids){const t=Date.now();await pg.evaluate(id=>location.hash='#/chart/'+id,id);await pg.waitForSelector('.land');times.push(Date.now()-t);
   for(const pn of ['visits','results','vitals','history']){await pg.evaluate(([id,pn])=>location.hash='#/chart/'+id+'/'+pn,[id,pn]);await pg.waitForSelector('.cslide');}
   const href=await pg.$eval('.cslide [data-doc]',a=>a.getAttribute('href'));await pg.evaluate(h=>location.hash=h,href);await pg.waitForSelector('pre.docpre');
-  await pg.evaluate(id=>location.hash='#/chart/'+id+'/results',id);await pg.click('[data-rt=img]');await pg.waitForSelector('.cslide [data-res]');await pg.click('.cslide [data-res]');await pg.waitForSelector('.imgrep');
+  await pg.evaluate(id=>location.hash='#/chart/'+id+'/results',id);await pg.click('[data-rt=img]');await pg.waitForSelector('.cslide [data-res]');await pg.click('.cslide [data-res]');await pg.waitForSelector('.imgrep,.rpage');
   await pg.evaluate(id=>location.hash='#/chart/'+id+'/visits',id);const vv=await pg.$$eval('.cslide [data-visit]',a=>a.map(x=>x.getAttribute('href')));await pg.evaluate(h=>location.hash=h,vv[vv.length-1]);await pg.waitForSelector('.cdetail .esec');
   const secs=await pg.$$eval('.cdetail .esec .val',a=>a.length);if(secs<7){fail++;console.log('FAIL note sections',id,secs);}
  }

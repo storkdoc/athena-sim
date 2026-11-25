@@ -65,3 +65,22 @@ All stylesheet sizes are in `rem` against a fluid root size, `html{font-size:cla
 - **600px:** the chart rail becomes icons only and the menus wrap.
 
 `tests/responsive.js` checks 17 screens at 390, 768, 1024, 1280, 1440, 1920 and 2560 wide. It fails on any horizontal page overflow, any element outside the viewport that isn't inside its own scroll container, and any console error.
+
+## Ultrasound and MFM reports (js/sono.js, css/sono.css)
+Every pregnancy gets ultrasound studies where clinically indicated, dated by gestational age. They are deterministic and fictitious, and each page carries the footer "SIMULATION - fictitious".
+- **In-office OB reports** use the Viewpoint-style layout with the letterhead "Congressional OBGYN (SIM)" and run 2 pages:
+  - Dating/viability at the NOB visit; a failed-pregnancy scan for SABs.
+  - A twin FHR check at 16 weeks.
+  - Cervical length at 16/18/22/24 weeks after a prior preterm birth.
+  - Anatomy at 19–21 weeks for low-risk patients.
+  - Placental follow-up at 28/32 weeks for a low-lying placenta.
+  - Growth at 32 weeks for AMA, 32/36 weeks for GDM, 36 weeks for suspected LGA.
+  - BPP from 36 weeks for age 40 and over.
+- **MFM consult reports** use the letterhead "Chesapeake Perinatal Associates (SIM)" and run 4 pages, including 6 SVG growth charts:
+  - NT for AMA, twins, or about 35% of other patients by choice.
+  - Detailed anatomy for high-risk patients (AMA, twins, pregestational DM, cHTN, prior PTB).
+  - Serial growth and weekly BPP with UA Doppler for twins, pregestational DM, cHTN, gHTN/preeclampsia, and FGR (growth every 2 weeks after onset).
+  - Each MFM report is filed under Imaging Results and also as an outside document (History, Clinical Documents inbox).
+- Measurements follow each fetus's own z-score trajectory, using Hadlock biometry and EFW. FGR falls below the 10th percentile after onset, LGA rises above the 85th–90th, and twin B tracks below twin A. UA S/D rises with FGR, and uterine artery PI rises with HTN.
+- GYN pelvic US results render as a 2-page "Gynecology Report".
+- Tests: `tests/sono.js`.

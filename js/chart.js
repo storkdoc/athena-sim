@@ -249,7 +249,7 @@ function resultPane(p,r,view){
   '<div class="frow"><span class="l">Performing lab</span><span>'+esc(r.vendor)+' (fictitious)</span></div>'+
   (r.comps?'<div class="rbox"><table><thead><tr><th>Analyte</th><th>Value</th><th>Ref. Range</th><th>Units</th><th>Abn. Flag</th><th>Status</th><th>Performed By</th><th>Date</th></tr></thead><tbody>'+
    r.comps.map(c=>'<tr><td><a href="#/chart/'+p.id+'/results/'+r.id+'?view=graph&an='+encodeURIComponent(c[0])+'">'+esc(c[0])+'</a></td><td'+(c[4]?' class="abn"':'')+'>'+esc(c[1])+'</td><td>'+esc(c[2])+'</td><td>'+esc(c[3])+'</td><td'+(c[4]?' class="abn"':'')+'>'+esc(c[4]||'')+'</td><td>final</td><td>01</td><td>'+C.mdy(r.day)+'</td></tr>').join('')+'</tbody></table>'+(r.comment?'<pre>'+esc(r.comment)+'</pre>':'')+'</div>'
-   :imgReport(r))+
+   :(window.SIMSONO&&SIMSONO.has(r)?SIMSONO.html(r):imgReport(r)))+
   '<div class="frow"><span class="l">Result Note</span><span>'+(r.kind==='Lab'?'FASTING '+r.fasting:'None')+'</span></div>'+
   '<div class="frow"><span class="l">Internal Note</span><span>'+(s.notes&&s.notes.length?esc(s.notes.join(' | ')):'<span class="gray">None</span>')+'</span></div>'+
   '<div class="actbox" id="actbox"><div class="row"><b>Action</b><label><input type="radio" name="ract" value="keep" checked> Keep in current status</label><label><input type="radio" name="ract" value="review"> Review (send to REVIEW)</label><label><input type="radio" name="ract" value="close"> Close</label></div>'+
@@ -349,9 +349,9 @@ function bindSimple(p,k){
  const f=$('#cfind');if(f){f.focus();f.oninput=()=>{const r=A.searchPatients(f.value,15);$('#cfindres').innerHTML=r.map(x=>'<a class="vrow" href="#/chart/'+x.id+'"><div class="t">'+esc(x.last.toUpperCase()+', '+x.first)+'</div><div class="g">#'+x.id+' &middot; '+C.mdy(x.dob)+'</div></a>').join('');};}
 }
 
-function docPane(p,d){const t=SIMHIST.docText(d);
+function docPane(p,d){const t=d.sono?'':SIMHIST.docText(d);
  return '<section class="cdetail" aria-label="Document"><div class="dh"><h2 style="font-size:1.1429rem;font-weight:600">'+esc(d.name)+' <span class="gray" style="font-weight:400">('+esc(d.kind)+', received '+C.mdy(d.day)+' via fax)</span></h2><span class="rt">'+(collapsed?'<button class="collapse o" id="expand">&raquo;</button>':'<button class="collapse o" id="collapse2" title="Collapse list">&laquo;</button>')+'</span></div>'+
- '<div class="dbody"><div class="rdoc"><div class="frow"><span class="l">Source</span><span>'+esc(d.vendor)+'</span></div><div class="frow"><span class="l">Document date</span><span>'+C.mdy(d.day)+'</span></div><div class="frow"><span class="l">Status</span><span>'+(D.itemOpen(d)?'REVIEW':'CLOSED (reviewed)')+'</span></div><div class="frow"><span class="l">Assigned to</span><span>'+esc(upper(d.prov))+'</span></div></div><pre class="docpre">'+esc(t)+'</pre></div></section>';}
+ '<div class="dbody"><div class="rdoc"><div class="frow"><span class="l">Source</span><span>'+esc(d.vendor)+'</span></div><div class="frow"><span class="l">Document date</span><span>'+C.mdy(d.day)+'</span></div><div class="frow"><span class="l">Status</span><span>'+(D.itemOpen(d)?'REVIEW':'CLOSED (reviewed)')+'</span></div><div class="frow"><span class="l">Assigned to</span><span>'+esc(upper(d.prov))+'</span></div></div>'+(d.sono&&window.SIMSONO?SIMSONO.html(d.res):'<pre class="docpre">'+esc(t)+'</pre>')+'</div></section>';}
 // ---------- main render ----------
 let last={};
 function rerender(){render(last.pid,last.panel,last.item);}

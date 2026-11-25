@@ -331,12 +331,12 @@ const IMGDEF={
    imp:'EFW '+efw(g.w,pc)+' g, '+pc+'th percentile at '+g.str+'. AFI '+afi+' cm. '+(pc<10?'Fetal growth restriction suspected; recommend MFM review, weekly testing and repeat growth in 2 weeks.':'Appropriate interval growth. '+pres.charAt(0).toUpperCase()+pres.slice(1)+' presentation.')};},abn:t=>/restriction/.test(t)},
  PELV:{name:'US Pelvis transvaginal',site:'Sim Imaging Center',rep:(r,p,v)=>{const age=C.ageAt(p.dob,v.day);const post=age>=52;const ul=sz(r,post?5.5:7.2,post?7.2:9.4),uw=sz(r,3.2,5.2),uap=sz(r,2.8,4.6);const es=post?sz(r,1.8,hasP(p,/postmeno/)?6.5:4):sz(r,4,12);
   const fib=hasP(p,/leiomyoma|Menorrhagia/)&&r.chance(0.85)||r.chance(0.1);const cyst=hasP(p,/Ovarian cyst/)&&r.chance(0.8)||(!post&&r.chance(0.08));const pco=hasP(p,/Polycystic/)&&r.chance(0.8);const endo=hasP(p,/Endometriosis/)&&r.chance(0.35);
-  const fs=fib?sz(r,1.6,5.8):null;const cs=cyst?sz(r,2.1,5.2):null;const find=['Uterus '+(r.chance(0.8)?'anteverted':'retroverted')+', measuring '+ul+' x '+uap+' x '+uw+' cm.'+(fib?' '+(r.chance(0.5)?'Intramural':'Subserosal')+' fibroid in the '+r.pick(['anterior','posterior','fundal'])+' myometrium measuring '+fs+' cm'+(r.chance(0.4)?'; second '+sz(r,0.8,2.2)+' cm fibroid':'')+'.':' Myometrium homogeneous.'),
+  const fs=fib?sz(r,1.6,5.8):null;const cs=cyst?sz(r,2.1,5.2):null;const ro=[sz(r,2.2,3.6),sz(r,1.6,2.4),sz(r,1.5,2.2)],lo=[sz(r,2.1,3.4),sz(r,1.5,2.3),sz(r,1.4,2.1)];const find=['Uterus '+(r.chance(0.8)?'anteverted':'retroverted')+', measuring '+ul+' x '+uap+' x '+uw+' cm.'+(fib?' '+(r.chance(0.5)?'Intramural':'Subserosal')+' fibroid in the '+r.pick(['anterior','posterior','fundal'])+' myometrium measuring '+fs+' cm'+(r.chance(0.4)?'; second '+sz(r,0.8,2.2)+' cm fibroid':'')+'.':' Myometrium homogeneous.'),
    'Endometrial stripe '+es+' mm, '+(post?'thin and homogeneous':'trilaminar, appropriate for cycle')+'.',
-   'Right ovary '+sz(r,2.2,3.6)+' x '+sz(r,1.6,2.4)+' x '+sz(r,1.5,2.2)+' cm.'+(cyst?' Simple-appearing anechoic cyst '+cs+' cm without internal flow or septation.':'')+(pco?' More than 20 peripheral follicles; ovarian volume increased.':''),
-   'Left ovary '+sz(r,2.1,3.4)+' x '+sz(r,1.5,2.3)+' x '+sz(r,1.4,2.1)+' cm.'+(endo?' Homogeneous low-level echo cyst '+sz(r,1.8,3.5)+' cm, likely endometrioma.':'')+(pco?' Similar polycystic morphology.':''),'No adnexal mass. '+(r.chance(0.3)?'Trace physiologic free fluid.':'No free fluid.')];
+   'Right ovary '+ro.join(' x ')+' cm.'+(cyst?' Simple-appearing anechoic cyst '+cs+' cm without internal flow or septation.':'')+(pco?' More than 20 peripheral follicles; ovarian volume increased.':''),
+   'Left ovary '+lo.join(' x ')+' cm.'+(endo?' Homogeneous low-level echo cyst '+sz(r,1.8,3.5)+' cm, likely endometrioma.':'')+(pco?' Similar polycystic morphology.':''),'No adnexal mass. '+(r.chance(0.3)?'Trace physiologic free fluid.':'No free fluid.')];
   const imp=[];if(fib)imp.push('Fibroid uterus; dominant fibroid '+fs+' cm.');if(cyst)imp.push('Right ovarian simple cyst '+cs+' cm (O-RADS 2). Recommend follow-up ultrasound in 6-8 weeks.');if(endo)imp.push('Left adnexal cyst likely endometrioma (O-RADS 3).');if(pco)imp.push('Polycystic ovarian morphology.');if(!imp.length)imp.push('Normal pelvic ultrasound.'+(post?' Endometrial stripe '+es+' mm.':''));
-  return {ind:v.reason?('Indication: '+v.reason+'.'):'Pelvic evaluation.',tech:'Transabdominal and transvaginal grayscale and color Doppler sonography of the pelvis.',comp:'None available.',find,meas:[['Uterus',ul+' x '+uap+' x '+uw+' cm'],['Endometrium',es+' mm']].concat(fib?[['Largest fibroid',fs+' cm']]:[]).concat(cyst?[['R ovarian cyst',cs+' cm']]:[]),imp:imp.join(' ')};},abn:t=>/cyst|Fibroid|endometrioma/i.test(t)},
+  return {ind:v.reason?('Indication: '+v.reason+'.'):'Pelvic evaluation.',tech:'Transabdominal and transvaginal grayscale and color Doppler sonography of the pelvis.',comp:'None available.',find,dims:{ul,uap,uw,es,ro,lo,fs,cs},meas:[['Uterus',ul+' x '+uap+' x '+uw+' cm'],['Endometrium',es+' mm']].concat(fib?[['Largest fibroid',fs+' cm']]:[]).concat(cyst?[['R ovarian cyst',cs+' cm']]:[]),imp:imp.join(' ')};},abn:t=>/cyst|Fibroid|endometrioma/i.test(t)},
  MAMMO:{name:'Mammogram screening bilateral w/ tomo',site:'Sim Breast Imaging (fictitious)',rep:(r,p,v)=>{const dens=r.wpick([[10,['A','almost entirely fatty']],[42,['B','scattered areas of fibroglandular density']],[38,['C','heterogeneously dense, which may obscure small masses']],[10,['D','extremely dense, which lowers sensitivity']]]);const zero=r.chance(0.07);const two=!zero&&r.chance(0.3);
   return {ind:'Screening.'+(hasP(p,/Family history of breast/)?' Family history of breast cancer.':''),tech:'Bilateral CC and MLO digital mammography with digital breast tomosynthesis. CAD reviewed.',comp:'Prior studies '+(r.chance(0.7)?'available and compared':'not available')+'.',
    find:['The breasts are '+dens[1]+' (ACR density '+dens[0]+').',zero?'Focal asymmetry in the '+r.pick(['left','right'])+' breast '+r.pick(['upper outer','lower inner','upper inner'])+' quadrant, posterior depth, seen on the CC view only.':two?'Scattered benign-appearing calcifications and stable benign-appearing intramammary lymph node.':'No suspicious masses, calcifications or architectural distortion.','Skin and nipples unremarkable.'],
@@ -364,13 +364,11 @@ const CONSULTS=[
 function ordersFor(v){
  const p=byId[v.pid],o=[];
  const wk=v.preg&&v.day<v.preg.end?C.ga(v.preg.lmp,v.day).w:null;
- if(v.type==='NOB'){o.push(['L','PRENATAL'],['L','CBC'],['L','UCX'],['L','GCCT']);o.push(['I','DATUS']);}
+ if(v.type==='NOB'){o.push(['L','PRENATAL'],['L','CBC'],['L','UCX'],['L','GCCT']);}
  if(v.type==='ROB'){
   if(/NIPT/.test(v.reason))o.push(['L','NIPT']);
-  if(/anatomy/.test(v.reason))o.push(['I','ANAT']);
   if(/glucola/.test(v.reason))o.push(['L','GLU1'],['L','CBC']);
   if(/GBS/.test(v.reason))o.push(['L','GBS']);
-  if(wk>=30&&v.preg.risk.length&&h01(v.id+'g')<0.5)o.push(['I','GROWTH']);
  }
  if(v.type==='WWV'||v.type==='NPV'){const age=C.ageAt(p.dob,v.day);if(age>=21&&age<=65&&(v.type==='NPV'||h01(v.id+'pap')<0.6))o.push(['L','PAP']);if(age<26)o.push(['L','GCCT']);if(age>=40)o.push(['I','MAMMO']);
   if(v.legacy||v.type==='NPV'||h01(v.id+'cbc')<0.45)o.push(['L','CBC']);
@@ -456,7 +454,7 @@ function patientCases(pid){if(!caseIdx){caseIdx={};for(let n=RANGE_START;n<=RANG
 const FOLDERS=['Patient in Office','Encounters','Appointment Requests','Patient Cases','Orders / Rxs / Auths','Lab / Imaging','Clinical Documents','Admin / Phone Messages','Unknown Documents','Need Followup'];
 const AUTOCLOSE_DAYS=14;
 function itemState(it){return STATE.get('inbox:'+it.id)||{};}
-function itemOpen(it){const s=itemState(it);if(s.closed)return false;if(s.reopened)return true;if(it.legacy)return false;
+function itemOpen(it){if(it.mirror)return itemOpen({id:'MD'+it.id.slice(1),day:it.day,min:Math.min(1430,it.min+70),abn:it.abn,priority:it.priority,folder:'Clinical Documents',legacy:it.legacy});const s=itemState(it);if(s.closed)return false;if(s.reopened)return true;if(it.legacy)return false;
  // historical items older than AUTOCLOSE_DAYS were handled already in the sim history
  const age=nowAbs()-abs(it.day,it.min);const imp=it.kind==='Lab'?(it.priority==='High'||(it.comps&&it.comps.some(c=>c[4]==='A'))||(it.abn&&h01('sig'+it.id)<0.3)):(it.abn||it.priority==='High');const keep=imp?AUTOCLOSE_DAYS:(it.folder==='Clinical Documents'?6:it.folder==='Lab / Imaging'?4:3);
  return age<=keep*1440;}
@@ -482,6 +480,8 @@ function inboxItems(provId){
  for(const d of recentDocs()){if((!provId||d.prov===provId)&&itemOpen(d))out.push(d);}
  // patient in office
  for(const v of dayAppts(now)){const st=apptStatus(v);if(['Checked In','Intake','Exam'].includes(st)&&(!provId||v.prov===provId))out.push({id:'O'+v.id,kind:'Patient in office',folder:'Patient in Office',name:st+' - '+ATYPE[v.type].name,text:'',pid:v.pid,day:now,min:v.start,prov:v.prov,visit:v.id,abn:false});}
+ // ultrasound reports (in-office results + MFM outside reports), generated where clinically indicated
+ if(G.SIMSONO)for(const it of G.SIMSONO.recent(now,AUTOCLOSE_DAYS))if((!provId||it.prov===provId)&&abs(it.day,it.min)<=nowAbs()&&itemOpen(it))out.push(it);
  // user-routed / followup
  for(const x of STATE.list('inbox:'))if(x.v.followup&&!x.v.closed){/* represented in its folder already */}
  return out.sort((a,b)=>abs(b.day,b.min)-abs(a.day,a.min));

@@ -1,0 +1,47 @@
+/* Ultrasound report documents (Print / View PDF look). SIMULATION ONLY. */
+.rptwrap{background:#e9e8ec;padding:0.8rem;margin:0.6rem 0 1rem;border:1px solid #d6d4db;max-width:100%;overflow:hidden}
+.rpttool{display:flex;align-items:center;gap:0.8rem;justify-content:space-between;flex-wrap:wrap;font-size:0.9rem;color:#555;margin:0 auto 0.6rem;max-width:58rem}
+.rpage{background:#fff;border:1px solid #c9c9cf;box-shadow:0 1px 4px rgba(0,0,0,.12);max-width:58rem;margin:0 auto 1rem;padding:1.6rem 1.8rem 2.6rem;position:relative;color:#111;font:0.92rem/1.38 Arial,Helvetica,sans-serif;overflow-x:auto}
+.rpage .pfoot{position:absolute;left:1.8rem;right:1.8rem;bottom:0.7rem;display:flex;justify-content:space-between;gap:1rem;font-size:0.72rem;color:#555;border-top:1px solid #ddd;padding-top:0.3rem;flex-wrap:wrap}
+.sl{width:2.6rem;height:2.6rem;flex:none}
+/* in-office (Viewpoint-style) */
+.gehd{display:flex;align-items:center;gap:0.8rem;border-bottom:1px solid #999;padding-bottom:0.4rem}
+.geti{font-style:italic;font-size:1.25rem;color:#333}.gepr{margin-left:auto;font-weight:700;font-size:1rem;color:#333;text-align:right}
+.gebl{display:flex;justify-content:space-between;gap:1rem;margin:0.5rem 0 0.7rem;font-size:0.95rem;flex-wrap:wrap}
+.rbar{border:1px solid #777;background:#efeff1;font-weight:700;font-size:0.85rem;padding:0.15rem 0.5rem;margin:0.7rem 0 0.35rem;display:flex;justify-content:space-between;gap:1rem}
+.rbar .r{font-weight:400}
+.g2,.g3,.g4{display:grid;gap:0.1rem 1.4rem;margin:0.2rem 0}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.g2>div{min-width:0}
+.rpage .kv{display:flex;gap:0.5rem;align-items:baseline;min-width:0}
+.rpage .kv .l{font-style:italic;color:#777;font-size:0.78rem;flex:0 0 auto;min-width:5.5rem}
+.rpage .kv .v{font-weight:700;overflow-wrap:anywhere}
+table.mt{width:100%;border-collapse:collapse;font-size:0.82rem;margin-bottom:0.2rem}
+table.mt th{font-weight:400;font-style:italic;color:#666;text-align:left;border-bottom:1px solid #bbb;padding:0.1rem 0.35rem}
+table.mt td{padding:0.12rem 0.35rem;border-bottom:1px dotted #e1e1e1;white-space:nowrap}
+table.mt td.fx{font-weight:700;width:1.5rem}table.mt td.v{font-weight:700}table.mt td.gr{color:#888;font-style:italic}
+.gecm{border:1px solid #bbb;padding:0.4rem 0.6rem;font-style:italic;font-size:0.84rem;text-transform:uppercase;min-height:3rem}
+ul.imp{margin:0.2rem 0 0.4rem 1.1rem;padding:0}
+.sigrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.4rem;margin-top:2.4rem}
+.sigrow .l{font-style:italic;color:#777;font-size:0.78rem}.sigrow .v{font-weight:700}.sigrow .sig{font-family:"Brush Script MT","Segoe Script",cursive;font-weight:400;font-size:1.2rem;color:#1d3f7a}
+.sigrow .sline{border-top:1px solid #333;margin-top:0.2rem}
+/* MFM consult */
+.mfmhd{display:flex;align-items:center;gap:1rem;border-bottom:2px solid #2f7d72;padding-bottom:0.5rem}
+.mfmc{flex:1;text-align:center;min-width:0}.mfmn{font-size:1.25rem;font-weight:700;color:#1f5d55}.mfma{font-size:0.78rem;color:#444}.mfmd{font-size:0.72rem;color:#2f4f4a;margin-top:0.25rem}
+.mfmi{display:flex;justify-content:space-between;gap:1rem;margin:0.7rem 0;font-size:0.85rem;flex-wrap:wrap}
+.mfmi .kvs{display:grid;grid-template-columns:auto auto;gap:0 0.6rem}.mfmi .kvs span{color:#555}
+.mfmt{text-align:center;font-size:1.15rem;margin:0.5rem 0 0.7rem}
+.mfmmini{font-size:0.72rem;color:#666;border-bottom:1px solid #ddd;margin-bottom:0.5rem;padding-bottom:0.2rem}
+.ms{display:grid;grid-template-columns:minmax(6.5rem,10rem) minmax(0,1fr);gap:0.8rem;border-top:1px solid #e6e6e6;padding:0.45rem 0}
+.msl{font-weight:700;color:#1f5d55;font-size:0.86rem}.msb{min-width:0;font-size:0.88rem}.msb p{margin:0.15rem 0}
+table.dt{border-collapse:collapse;width:100%;font-size:0.82rem;margin:0.1rem 0}
+table.dt th,table.dt td{border:1px dotted #b9b9b9;padding:0.12rem 0.4rem;text-align:left}table.dt th{background:#f6f8f7;font-weight:600}table.dt tr.b td{font-weight:700}
+ul.dl{margin:0;padding:0.2rem 0.4rem 0.2rem 1.3rem;border:1px dotted #b9b9b9}
+ul.anat{margin:0.2rem 0 0.3rem 1rem;padding:0}
+.msig{display:flex;justify-content:space-between;gap:1rem;margin-top:1.4rem;font-size:0.86rem;flex-wrap:wrap}
+.gch{margin:0.3rem 0 0.6rem;font-size:0.95rem;color:#1f5d55}
+.gcg{display:grid;grid-template-columns:repeat(auto-fill,minmax(14rem,1fr));gap:0.8rem}
+figure.gc{margin:0;border:1px solid #ddd;padding:0.3rem}figure.gc figcaption{font-weight:700;font-size:0.82rem}figure.gc figcaption span{font-weight:400;color:#777}
+figure.gc svg{width:100%;height:auto;display:block}
+@media (max-width:600px){.rpage{padding:1rem 0.8rem 3rem}.g3,.g4,.sigrow{grid-template-columns:repeat(2,minmax(0,1fr))}.ms{grid-template-columns:minmax(0,1fr)}.rptwrap{padding:0.3rem}}
+@media print{body *{visibility:hidden}.rptwrap,.rptwrap *{visibility:visible}.rptwrap{position:absolute;left:0;top:0;background:#fff;border:0;padding:0}.rpttool{display:none}.rpage{box-shadow:none;border:0;page-break-after:always;max-width:none}}
