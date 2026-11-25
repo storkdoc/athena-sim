@@ -37,3 +37,19 @@ image generator for this simulation and are not photos of any real person. `js/p
 chosen deterministically from the patient ID by sex and age band (age as of 2026-01-01). About 17% of patients get the gray
 silhouette and about 6% get an initials tile, as in real charts. Male headshots are used for fictitious partners and
 emergency contacts.
+
+
+## Backfilled clinical record (every patient)
+
+`js/history.js` gives each of the ~5,200 fictitious patients a deterministic multi-year record dated 03/2021-12/2024, before the
+scheduled range. That means every patient has a past record on every sim date. The record is built lazily the first time a chart opens, takes about 10-50 ms, and is cached.
+
+- **Patient categories:** *established* (seen here since 2021), *transfer* (new-patient visit in 2023-24 plus faxed outside records from a prior OB/GYN) and *adolescent* (first GYN visit plus pediatric records).
+- **Past visits** cover annuals, problem visits that match the problem list, and prenatal and postpartum care. Prenatal care includes prior deliveries in the window and the pre-2025 part of pregnancies that continue into the range. Every visit has a full generated note: reason, HPI, 12-system ROS, 10-system exam, multi-problem A&P, screening, procedures and vitals.
+- **Labs** repeat over time from per-patient baselines, so they trend (Hgb, TSH, LDL, A1c, vitamin D, ferritin, CMP) and match the problem list.
+- **Imaging** results are full reports: indication, technique, comparison, findings, measurements, impression and a fictitious reader. They include dating, anatomy and growth OB ultrasounds, pelvic US, mammogram, breast US and DXA.
+- **Outside documents** have full letter text: MFM, endocrinology, cardiology, breast surgery, GI, behavioral health, pulmonary/sleep, urogynecology, neurology, rheumatology, PCP summary, ED summary, delivery discharge summary and prior-practice records.
+- **History slide-out:** medical, surgical, OB (G/P, TPAL, delivery table), GYN, social and family history, plus medication start/stop history and insurance. The **Vaccines** panel lists immunizations. The **Vitals** panel shows all encounters and a prenatal flowsheet for each pregnancy. Portal and phone cases appear under Visits and Cases.
+- **Inbox:** backfilled items are already reviewed (closed). Recent in-range results and documents still arrive unreviewed in the Clinical Inbox.
+
+`tests/coverage.js` checks all 5,200 patients on five sim dates (2025-01-02 to 2027-12-30). Each patient must have at least one past visit, lab, imaging report and outside document. On a sample, the test also checks the depth of the notes, reports, documents and history sections, then opens real chart panels.

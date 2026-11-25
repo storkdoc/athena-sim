@@ -31,7 +31,7 @@ let cur={};          // current render context
 let landTab='last';let visitShow='all';let visitAll=false;let resTab='lab';let collapsed=false;
 
 // ---------- visit state ----------
-function visitsOf(p){return p.visits.concat(D.addedAppts().filter(b=>b.pid===p.id));}
+function visitsOf(p){return SIMHIST.get(p).visits.concat(p.visits,D.addedAppts().filter(b=>b.pid===p.id));}
 function vStatus(v){
  const st=D.apptStatus(v);const n=now().day;
  if(st==='Cancelled')return 'CANCELLED';if(st==='No Show')return 'NO SHOW';
@@ -45,19 +45,7 @@ function vStatus(v){
 }
 function vTitle(v,withState){const t=v.tele?'Privia Virtual Visit':(VTITLE[v.type]||'Office Visit');const s=vStatus(v);
  if(!withState)return t;if(s==='UPCOMING')return t.toLowerCase()+' (upcoming)';if(s==='OPEN')return t+' (OPEN)';if(s==='CANCELLED')return t+' (CANCELLED)';if(s==='NO SHOW')return t+' (NO SHOW)';return t;}
-function genEnc(v){
- const p=D.byId[v.pid];const x=D.vitals(v);const pg=v.preg&&v.day<v.preg.end?v.preg:null;const res=D.resultsForVisit(v);
- const age=C.ageAt(p.dob,v.day);
- const hpi=pg?p.first+' is a '+age+'yo '+D.gp(p,v.day)+' at '+x.ga+' presenting for '+VTITLE[v.type].toLowerCase()+'. Reports '+(x.fm?'+FM, ':'')+'no VB, no LOF, '+(x.ctx==='None'?'no ctx':'irregular ctx')+'. '+(pg.risk.length?'Pregnancy complicated by '+pg.risk.join(', ')+'.':'Uncomplicated pregnancy to date.')
-  :p.first+' is a '+age+'yo '+D.gp(p,v.day)+' presenting for '+v.reason+'. Symptoms and history reviewed with patient.';
- const ros={};['Constitutional','Cardiovascular','Respiratory','Gastrointestinal','Genitourinary'].forEach(k=>ros[k]={st:'neg',note:''});
- const pe={General:{normal:true,note:'NAD, well appearing'},Abdomen:{normal:true,note:pg&&parseInt(x.ga)>=20?'soft, gravid, size = dates':'soft, non-tender'}};
- if(v.type==='WWV'){pe.Breasts={normal:true,note:'no masses bilaterally'};pe.Pelvic={normal:true,note:'normal external genitalia, cervix without lesions'};}
- const plan=(pg?['Routine prenatal care reviewed.']:['Counseling provided.']).concat(res.map(r=>'Ordered: '+r.name+'.'));
- return {reason:v.reason,hpi,ros,screening:{'Depression (PHQ-2)':'Negative','Intimate partner violence':'Negative','Tobacco use':'Never'},pe,
-  ap:[{dx:pg?'Supervision of pregnancy, '+x.ga:v.reason,code:v.dx,plan:plan.join(' ')}],proc:v.type==='WWV'?{type:'Pap smear',note:'Specimen collected without difficulty.'}:{type:'',note:''},
-  vitals:{bp:x.bp,pulse:String(x.pulse),wt:String(x.wt),temp:x.temp,fhr:x.fhr?String(x.fhr):'',fh:x.fh?String(x.fh):'',uprot:x.uprot||''},gen:true};
-}
+function genEnc(v){return SIMHIST.note(v);}
 function encData(v){const s=S.get('enc:'+v.id);if(s)return s;const st=vStatus(v);if(st==='CLOSED'&&!v.booked)return genEnc(v);return {reason:'',hpi:'',ros:{},screening:{},pe:{},ap:[],proc:{type:'',note:''},vitals:{}};}
 function saveEnc(v,patch){const e=Object.assign({},encData(v),patch);delete e.gen;S.set('enc:'+v.id,e);}
 
@@ -77,7 +65,7 @@ function resHistory(r){
  return rows.sort((a,b)=>a[0]-b[0]);
 }
 function addHistory(id,h){const s=S.get('res:'+id)||{};s.history=(s.history||[]).concat([Object.assign({at:D.nowAbs(),by:'SBEHRAM3'},h)]);S.set('res:'+id,s);}
-function flagOf(r){if(r.abn)return 'abnormal';if(r.comps&&r.comps.some(c=>!isNaN(parseFloat(c[1]))))return 'normal';if(r.comps)return 'normal';return 'unknown';}
+function flagOf(r){if(r.abn)return 'abnormal';if(r.kind==='Imaging')return 'normal';if(r.comps&&r.comps.some(c=>!isNaN(parseFloat(c[1]))))return 'normal';if(r.comps)return 'normal';return 'unknown';}
 function sameCode(p,r){return D.patientResults(p).filter(x=>x.code===r.code&&D.abs(x.day,x.min)<=D.abs(r.day,r.min)).sort((a,b)=>a.day-b.day);}
 
 // ---------- banner ----------
@@ -102,12 +90,7 @@ function addExtra(p,k,item){S.set('chart:'+p.id+':'+k,extra(p,k).concat([item]))
 function allergyList(p){return A.allergies(p).map(a=>({name:a[0],reaction:a[1],sev:a[2]})).concat(extra(p,'allergies'));}
 function problemList(p){return A.problems(p,now().day).map(x=>({name:x[0],code:x[1]})).concat(extra(p,'problems'));}
 function medList(p){const dc=new Set(extra(p,'medsdc'));return A.meds(p,now().day).map(m=>({name:m[0],sig:m[1],start:m[2]})).concat(extra(p,'meds')).filter(m=>!dc.has(m.name));}
-function vaccineList(p){const n=now().day;const r=C.R('vax:'+p.id);const out=[];
- for(let y=2022;y<=2027;y++){const d=C.dn(y,10,1)+r.int(0,50);if(d<=n&&r.chance(0.6))out.push({name:'Influenza, seasonal (SIM)',date:d,by:'administered in office'});}
- for(const pg of p.preg){const d=pg.lmp+r.int(27,33)*7;if(d<=n&&d<pg.end)out.push({name:'Tdap',date:d,by:'administered in office (pregnancy)'});}
- if(r.chance(0.7)){const d=C.dn(2024,r.int(9,12),r.int(1,28));if(d<=n)out.push({name:'COVID-19 vaccine, 2024-2025 formula (SIM)',date:d,by:'reported by patient'});}
- if(C.ageAt(p.dob,C.dn(2025,1,1))<27&&r.chance(0.6))out.push({name:'HPV 9-valent (series complete)',date:p.dob+365*14,by:'historical'});
- return out.concat(extra(p,'vaccines')).sort((a,b)=>b.date-a.date);}
+function vaccineList(p){const n=now().day;return SIMHIST.immunizations(p,n).concat(extra(p,'vaccines')).sort((a,b)=>b.date-a.date);}
 
 // ---------- landing ----------
 function landing(p){
@@ -174,7 +157,7 @@ const DXS=[['Encounter for gynecological examination','Z01.419'],['Supervision o
 const SECTIONS=[['reason','Reason for Visit'],['vitals','Vitals'],['ap','Assessment & Plan'],['hpi','History of Present Illness'],['ros','Review of Systems'],['screening','Screening'],['pe','Physical Exam'],['proc','Procedure Documentation']];
 function secText(k,e,v){
  if(k==='reason')return e.reason||'';if(k==='hpi')return e.hpi||'';
- if(k==='vitals'){const x=e.vitals||{};const parts=[];if(x.bp)parts.push('BP '+x.bp);if(x.pulse)parts.push('P '+x.pulse);if(x.wt)parts.push('Wt '+x.wt+' lb');if(x.temp)parts.push('T '+x.temp);if(x.fhr)parts.push('FHR '+x.fhr);if(x.fh)parts.push('FH '+x.fh+' cm');if(x.uprot)parts.push('Urine prot '+x.uprot);return parts.join('   ');}
+ if(k==='vitals'){const x=e.vitals||{};const parts=[];if(x.bp)parts.push('BP '+x.bp);if(x.pulse)parts.push('P '+x.pulse);if(x.wt)parts.push('Wt '+x.wt+' lb');if(x.temp)parts.push('T '+x.temp);if(x.ht)parts.push('Ht '+x.ht);if(x.bmi)parts.push('BMI '+x.bmi);if(x.rr)parts.push('RR '+x.rr);if(x.spo2)parts.push('SpO2 '+x.spo2+'%');if(x.fhr)parts.push('FHR '+x.fhr);if(x.fh)parts.push('FH '+x.fh+' cm');if(x.uprot)parts.push('Urine prot '+x.uprot);return parts.join('   ');}
  if(k==='ap')return (e.ap||[]).filter(a=>a.dx||a.plan).map((a,i)=>(i+1)+'. '+a.dx+(a.code?' ('+a.code+')':'')+(a.plan?'\n   Plan: '+a.plan:'')).join('\n');
  if(k==='ros'){const r=e.ros||{};const neg=[],pos=[];for(const s in r){if(r[s].st==='neg')neg.push(s);if(r[s].st==='pos')pos.push(s+(r[s].note?': '+r[s].note:''));}return (pos.length?'Positive: '+pos.join('; ')+'\n':'')+(neg.length?'Negative: '+neg.join(', '):'');}
  if(k==='screening'){const r=e.screening||{};return Object.keys(r).filter(x=>r[x]).map(x=>x+': '+r[x]).join('\n');}
@@ -201,7 +184,7 @@ function collectSec(k,box,e){
  const g=s=>box.querySelector(s);
  if(k==='reason')return {reason:g('[data-f=reason]').value};
  if(k==='hpi')return {hpi:g('[data-f=hpi]').value};
- if(k==='vitals'){const x={};box.querySelectorAll('[data-v]').forEach(i=>x[i.dataset.v]=i.value);return {vitals:x};}
+ if(k==='vitals'){const x=Object.assign({},e.vitals||{});box.querySelectorAll('[data-v]').forEach(i=>x[i.dataset.v]=i.value);return {vitals:x};}
  if(k==='ap'){const ap=[];box.querySelectorAll('.ap').forEach((d,i)=>{const sel=d.querySelector('[data-apdx]');const fr=d.querySelector('[data-apfree]').value.trim();const code=sel.value;const dx=fr||(code?DXS.find(x=>x[1]===code)[0]:'');const plan=d.querySelector('[data-applan]').value;if(dx||plan)ap.push({dx,code:fr?'':code,plan});});return {ap};}
  if(k==='ros'){const r={};ROS_SYS.forEach(s=>{const c=box.querySelector('input[name="ros-'+s+'"]:checked');const note=box.querySelector('[data-rosnote="'+s+'"]').value;if((c&&c.value)||note)r[s]={st:c?c.value:'',note};});return {ros:r};}
  if(k==='screening'){const r={};box.querySelectorAll('[data-scr]').forEach(s=>{if(s.value)r[s.dataset.scr]=s.value;});return {screening:r};}
@@ -241,7 +224,7 @@ function bindEncounter(p,v){
 }
 // cases detail
 function casePane(p,c){const open=D.itemOpen(c);
- return '<section class="cdetail"><div class="dh"><h2>'+esc(c.kind==='Patient case'?'Patient Case':c.kind)+'</h2><span class="rt">'+(open?'<button class="gbtn p" id="caseclose">Close case</button>':'<span class="gray">CLOSED</span>')+(collapsed?'<button class="collapse o" id="expand">&raquo;</button>':'')+'</span></div><div class="dbody"><div class="vtitle">'+esc(c.name)+'</div><div class="vsub">'+fmtDT(c.day,c.min)+' &middot; via '+esc(c.vendor||'')+' &middot; assigned to '+esc(pv(c.prov).full+', '+pv(c.prov).cred)+'</div><div class="esec"><h4>Details</h4><div class="val">'+esc(c.text)+'</div></div></div></section>';}
+ return '<section class="cdetail"><div class="dh"><h2>'+esc(c.kind==='Patient case'?'Patient Case':c.kind)+'</h2><span class="rt">'+(open?'<button class="gbtn p" id="caseclose">Close case</button>':'<span class="gray">CLOSED</span>')+(collapsed?'<button class="collapse o" id="expand">&raquo;</button>':'')+'</span></div><div class="dbody"><div class="vtitle">'+esc(c.name)+'</div><div class="vsub">'+fmtDT(c.day,c.min)+' &middot; via '+esc(c.vendor||'')+' &middot; assigned to '+esc(pv(c.prov).full+', '+pv(c.prov).cred)+'</div><div class="esec"><h4>Details</h4><div class="val" style="white-space:pre-wrap">'+esc(c.text)+'</div></div></div></section>';}
 
 // ---------- results panel & document ----------
 function resultsPanel(p,selId,docked){
@@ -266,7 +249,7 @@ function resultPane(p,r,view){
   '<div class="frow"><span class="l">Performing lab</span><span>'+esc(r.vendor)+' (fictitious)</span></div>'+
   (r.comps?'<div class="rbox"><table><thead><tr><th>Analyte</th><th>Value</th><th>Ref. Range</th><th>Units</th><th>Abn. Flag</th><th>Status</th><th>Performed By</th><th>Date</th></tr></thead><tbody>'+
    r.comps.map(c=>'<tr><td><a href="#/chart/'+p.id+'/results/'+r.id+'?view=graph&an='+encodeURIComponent(c[0])+'">'+esc(c[0])+'</a></td><td'+(c[4]?' class="abn"':'')+'>'+esc(c[1])+'</td><td>'+esc(c[2])+'</td><td>'+esc(c[3])+'</td><td'+(c[4]?' class="abn"':'')+'>'+esc(c[4]||'')+'</td><td>final</td><td>01</td><td>'+C.mdy(r.day)+'</td></tr>').join('')+'</tbody></table>'+(r.comment?'<pre>'+esc(r.comment)+'</pre>':'')+'</div>'
-   :'<div class="rbox"><table><thead><tr><th>Study</th><th>Status</th><th>Date</th></tr></thead><tbody><tr><td>'+esc(r.name)+'</td><td>final</td><td>'+C.mdy(r.day)+'</td></tr></tbody></table><pre>IMPRESSION:\n'+esc(r.text)+'\n\nInterpreting radiologist: Sim Radiology Group (fictitious)</pre></div>')+
+   :imgReport(r))+
   '<div class="frow"><span class="l">Result Note</span><span>'+(r.kind==='Lab'?'FASTING '+r.fasting:'None')+'</span></div>'+
   '<div class="frow"><span class="l">Internal Note</span><span>'+(s.notes&&s.notes.length?esc(s.notes.join(' | ')):'<span class="gray">None</span>')+'</span></div>'+
   '<div class="actbox" id="actbox"><div class="row"><b>Action</b><label><input type="radio" name="ract" value="keep" checked> Keep in current status</label><label><input type="radio" name="ract" value="review"> Review (send to REVIEW)</label><label><input type="radio" name="ract" value="close"> Close</label></div>'+
@@ -279,6 +262,11 @@ function resultPane(p,r,view){
  return '<section class="cdetail" aria-label="Result document"><div class="dh"><h2 style="font-size:15px;font-weight:600">'+hdr+' <span class="gray" style="font-weight:400">(created '+created+' by INTERFACE) #'+r.num+'</span></h2><span class="rt">'+views+(collapsed?'<button class="collapse o" id="expand">&raquo;</button>':'<button class="collapse o" id="collapse2" title="Collapse list">&laquo;</button>')+'</span></div>'+
  '<div class="dbody">'+body+'</div>'+(view==='graph'||view==='table'?'':'<div class="sticky"><span>'+hdr+' #'+r.num+'</span><a class="lnk" id="viewact">View Actions</a><span class="rt"><button class="gbtn p" id="rsave">Save</button><button class="gbtn" id="rcancel">Cancel</button><a class="lnk" id="audit" style="text-transform:none;font-weight:400;letter-spacing:0">Audit History</a></span></div>')+'</section>';
 }
+function imgReport(r){const x=r.report||{imp:r.text,find:[],meas:[]};
+ return '<div class="rbox"><table><thead><tr><th>Study</th><th>Accession</th><th>Status</th><th>Exam date</th><th>Read date</th></tr></thead><tbody><tr><td>'+esc(r.name)+'</td><td>SIM'+String(r.num).slice(-7)+'</td><td>final</td><td>'+C.mdy(r.collected||r.day)+'</td><td>'+C.mdy(r.day)+'</td></tr></tbody></table>'+
+ '<div class="imgrep"><h5>INDICATION</h5><p>'+esc(x.ind||'')+'</p><h5>TECHNIQUE</h5><p>'+esc(x.tech||'')+'</p><h5>COMPARISON</h5><p>'+esc(x.comp||'None.')+'</p><h5>FINDINGS</h5><ul>'+(x.find||[]).map(f=>'<li>'+esc(f)+'</li>').join('')+'</ul>'+
+ ((x.meas||[]).length?'<h5>MEASUREMENTS</h5><table class="mini meas"><tbody>'+x.meas.map(m=>'<tr><td>'+esc(m[0])+'</td><td>'+esc(m[1])+'</td></tr>').join('')+'</tbody></table>':'')+
+ '<h5>IMPRESSION</h5><p class="imp'+(r.abn?' abn':'')+'">'+esc(x.imp)+'</p><p class="gray">Interpreted by '+esc(x.reader||'Sim Radiology Group')+', Sim Radiology Group (fictitious). Electronically signed '+C.mdy(r.day)+'.</p></div></div>';}
 function graphView(p,r){
  const hist=sameCode(p,r);const an=(A.q().an)||(r.comps&&r.comps.find(c=>!isNaN(parseFloat(c[1])))||[])[0];
  if(!r.comps||!an)return '<div class="gray" style="padding:10px">No numeric analytes to graph for this result.</div>';
@@ -323,24 +311,30 @@ function simplePanel(p,k){
   add='<div class="addf"><b>Add allergy</b><input data-a="name" placeholder="Allergen"><input data-a="reaction" placeholder="Reaction"><select data-a="sev"><option>Mild</option><option>Moderate</option><option>Severe</option></select><button class="gbtn p" data-add="allergies">Add</button></div>';}
  if(k==='problems'){const l=problemList(p);body=l.map(x=>'<div class="lrow"><div><b>'+esc(x.name)+'</b><div class="g">'+esc(x.code||'')+' &middot; Active'+(x.added?' &middot; added '+absToDT(x.added):'')+'</div></div></div>').join('')||'<div class="lrow">No active problems</div>';
   add='<div class="addf"><b>Add problem</b><input data-a="name" placeholder="Problem"><input data-a="code" placeholder="ICD-10 (optional)"><button class="gbtn p" data-add="problems">Add</button></div>';}
- if(k==='meds'){const l=medList(p);body=l.map(m=>'<div class="lrow"><div><b>'+esc(m.name)+'</b><div class="g">'+esc(m.sig||'')+' &middot; start '+esc(m.start||'')+'</div></div><button class="gbtn r" data-dc="'+esc(m.name)+'" title="Discontinue">D/C</button></div>').join('')||'<div class="lrow">No active medications</div>';
+ if(k==='meds'){const l=medList(p);body=l.map(m=>'<div class="lrow"><div><b>'+esc(m.name)+'</b><div class="g">'+esc(m.sig||'')+' &middot; start '+esc(m.start||'')+'</div></div><button class="gbtn r" data-dc="'+esc(m.name)+'" title="Discontinue">D/C</button></div>').join('')||'<div class="lrow">No active medications</div>';body+='<div class="grp">Historical / discontinued</div>'+(SIMHIST.medHistory(p,n).filter(m=>m.stop).map(m=>'<div class="lrow"><div><b>'+esc(m.name)+'</b><div class="g">'+C.mdy(m.start)+' \u2013 '+C.mdy(m.stop)+' &middot; '+esc(m.why)+'</div></div></div>').join('')||'<div class="lrow g">None</div>');
   add='<div class="addf"><b>Add medication</b><input data-a="name" placeholder="Medication and strength"><input data-a="sig" placeholder="Sig"><button class="gbtn p" data-add="meds">Add</button></div>';}
  if(k==='vaccines'){const l=vaccineList(p);body=l.map(x=>'<div class="lrow"><div><b>'+esc(x.name)+'</b><div class="g">'+C.mdy(x.date)+' &middot; '+esc(x.by)+'</div></div></div>').join('')||'<div class="lrow">No vaccines recorded</div>';
   add='<div class="addf"><b>Record vaccine</b><input data-a="name" placeholder="Vaccine"><button class="gbtn p" data-add="vaccines">Record (today)</button></div>';}
  if(k==='vitals'){wide=true;const pg=D.pregAt(p,n);
-  const vs=visitsOf(p).filter(v=>v.day<=n&&v.fate==='ok'&&!v.booked&&D.COMPLETED(D.apptStatus(v))).slice(-12).reverse();
+  const vs=visitsOf(p).filter(v=>v.day<=n&&v.fate==='ok'&&!v.booked&&D.COMPLETED(D.apptStatus(v))).sort((a,b)=>a.day-b.day);
   const userV=extra(p,'vitals').slice().reverse();
-  body=(pg?'<div class="grp">Prenatal flowsheet (current pregnancy, EDD '+C.mdy(pg.edd)+')</div><div style="overflow:auto"><table class="mini"><thead><tr><th>Date</th><th>GA</th><th>Wt</th><th>BP</th><th>Urine P/G</th><th>FH</th><th>FHR</th><th>Edema</th></tr></thead><tbody>'+
-   vs.filter(v=>v.preg===pg).map(v=>{const x=D.vitals(v);return '<tr><td>'+C.mdy(v.day).slice(0,5)+'</td><td>'+x.ga+'</td><td>'+x.wt+'</td><td'+(x.sys>=140||x.dia>=90?' style="color:#d0342c;font-weight:700"':'')+'>'+x.bp+'</td><td>'+x.uprot.slice(0,3)+'/'+x.uglu.slice(0,3)+'</td><td>'+(x.fh||'')+'</td><td>'+(x.fhr||'')+'</td><td>'+x.edema+'</td></tr>';}).join('')+'</tbody></table></div>':'')+
-   '<div class="grp">Vitals</div><div style="overflow:auto"><table class="mini"><thead><tr><th>Date</th><th>BP</th><th>P</th><th>Wt</th><th>BMI</th><th>T</th></tr></thead><tbody>'+userV.map(x=>'<tr><td>'+absToDT(x.added).slice(0,10)+' *</td><td>'+esc(x.bp)+'</td><td>'+esc(x.pulse)+'</td><td>'+esc(x.wt)+'</td><td></td><td>'+esc(x.temp)+'</td></tr>').join('')+vs.map(v=>{const x=D.vitals(v);return '<tr><td>'+C.mdy(v.day)+'</td><td>'+x.bp+'</td><td>'+x.pulse+'</td><td>'+x.wt+'</td><td>'+x.bmi+'</td><td>'+x.temp+'</td></tr>';}).join('')+'</tbody></table></div>';
+  const pregs=[...new Set(vs.filter(v=>v.preg&&v.day<v.preg.end).map(v=>v.preg))].sort((a,b)=>b.lmp-a.lmp);
+  const flow=q=>'<div class="grp">Prenatal flowsheet ('+(q===pg?'current pregnancy':'pregnancy ending '+C.mdy(q.end))+', EDD '+C.mdy(q.lmp+280)+')</div><div style="overflow:auto"><table class="mini"><thead><tr><th>Date</th><th>GA</th><th>Wt</th><th>BP</th><th>Urine P/G</th><th>FH</th><th>FHR</th><th>Pres</th><th>Edema</th></tr></thead><tbody>'+
+   vs.filter(v=>v.preg===q&&v.day<q.end).reverse().map(v=>{const x=D.vitals(v);return '<tr><td>'+C.mdy(v.day)+'</td><td>'+x.ga+'</td><td>'+x.wt+'</td><td'+(x.sys>=140||x.dia>=90?' style="color:#d0342c;font-weight:700"':'')+'>'+x.bp+'</td><td>'+x.uprot.slice(0,3)+'/'+x.uglu.slice(0,3)+'</td><td>'+(x.fh||'')+'</td><td>'+(x.fhr||'')+'</td><td>'+(x.pres||'')+'</td><td>'+x.edema+'</td></tr>';}).join('')+'</tbody></table></div>';
+  body=pregs.map(flow).join('')+
+   '<div class="grp">Vitals ('+(vs.length+userV.length)+' encounters)</div><div style="overflow:auto"><table class="mini"><thead><tr><th>Date</th><th>BP</th><th>P</th><th>RR</th><th>T</th><th>SpO2</th><th>Wt (lb)</th><th>Ht</th><th>BMI</th></tr></thead><tbody>'+userV.map(x=>'<tr><td>'+absToDT(x.added).slice(0,10)+' *</td><td>'+esc(x.bp)+'</td><td>'+esc(x.pulse)+'</td><td></td><td>'+esc(x.temp)+'</td><td></td><td>'+esc(x.wt)+'</td><td></td><td></td></tr>').join('')+vs.slice().reverse().map(v=>{const x=D.vitals(v);return '<tr><td>'+C.mdy(v.day)+'</td><td'+(x.sys>=140||x.dia>=90?' style="color:#d0342c;font-weight:700"':'')+'>'+x.bp+'</td><td>'+x.pulse+'</td><td>'+x.rr+'</td><td>'+x.temp+'</td><td>'+x.spo2+'%</td><td>'+x.wt+'</td><td>'+x.ht+'</td><td>'+x.bmi+'</td></tr>';}).join('')+'</tbody></table></div>';
   add='<div class="addf"><b>Record vitals</b> <span class="g">(* entered in sim)</span><input data-a="bp" placeholder="BP e.g. 118/76"><input data-a="pulse" placeholder="Pulse"><input data-a="wt" placeholder="Weight (lb)"><input data-a="temp" placeholder="Temp"><button class="gbtn p" data-add="vitals">Save vitals</button></div>';}
- if(k==='history'){wide=true;const obs=p.preg.filter(pg=>pg.end<=n);
-  body='<div class="grp">Obstetric history ('+D.gp(p,n)+')</div>'+(p.gp.g?'<div class="lrow"><div>'+p.gp.g+' pregnancy(ies) before '+C.mdy(D.RANGE_START).slice(-4)+'<div class="g">details per outside records</div></div></div>':'')+obs.map(pg=>'<div class="lrow"><div><b>'+C.mdy(pg.end)+'</b> '+(pg.outcome==='delivered'?esc(pg.mode)+' at '+C.ga(pg.lmp,pg.end).str+', '+pg.baby+' '+pg.weight+' g':pg.outcome==='sab'?'Spontaneous abortion at '+C.ga(pg.lmp,pg.end).str:'Transferred care')+'<div class="g">'+esc(pg.hosp)+'</div></div></div>').join('')+
-  '<div class="grp">Gynecologic history</div><div class="lrow">Menarche age '+(11+C.h01(p.id+'m')*4|0)+' &middot; '+(C.ageAt(p.dob,n)>=52?'Postmenopausal':'Cycles regular')+'</div>'+
-  '<div class="grp">Surgical history</div>'+(obs.some(pg=>pg.mode&&pg.mode.includes('C-section'))?'<div class="lrow">Cesarean delivery</div>':'')+(C.h01(p.id+'s')<0.2?'<div class="lrow">Laparoscopic cholecystectomy</div>':'')+(C.h01(p.id+'w')<0.15?'<div class="lrow">Wisdom teeth extraction</div>':'')+'<div class="lrow g">Reviewed</div>'+
-  '<div class="grp">Social history</div><div class="lrow">Tobacco: '+(C.h01(p.id+'t')<0.08?'former':'never')+' &middot; Alcohol: '+(C.h01(p.id+'a')<0.5?'occasional':'none')+'</div>'+
-  '<div class="grp">Family history</div><div class="lrow">'+['Mother: hypertension','Father: type 2 diabetes','Maternal aunt: breast cancer age 58','No significant family history'][C.h01(p.id+'f')*4|0]+'</div>'+
-  '<div class="grp">Documents</div>'+D.patientDocs(p).slice().reverse().map(d=>'<div class="lrow"><div><b>'+esc(d.name)+'</b><div class="g">'+C.mdy(d.day)+' &middot; '+esc(d.vendor)+'</div><div style="margin-top:3px">'+esc(d.text)+'</div></div></div>').join('');}
+ if(k==='history'){wide=true;const H=SIMHIST;const ob=H.obHistory(p,n);const docs=D.patientDocs(p).slice().sort((a,b)=>b.day-a.day);
+  const row=(l,v)=>'<div class="lrow hx"><span class="hl">'+esc(l)+'</span><span>'+esc(v)+'</span></div>';
+  body='<div class="grp">Outside documents and records ('+docs.length+')</div>'+docs.map(d=>'<a class="vrow'+(d.id===cur.doc?' sel':'')+'" href="#/chart/'+p.id+'/history/'+d.id+'" data-doc="'+d.id+'"><div class="t">'+esc(d.name)+'</div><div class="d">'+esc(d.vendor)+'</div><div class="g">'+C.mdy(d.day)+' &middot; '+esc(d.kind)+'</div></a>').join('')+
+  '<div class="grp">Medical history</div>'+problemList(p).map(x=>row(x.name,(x.code||'')+(x.code?' \u00b7 ':'')+'onset '+(C.ymd(D.RANGE_START).y-1-(C.h01(p.id+x.name)*8|0)))).join('')+
+  '<div class="grp">Surgical history</div>'+(H.surgical(p,n).map(s=>row(String(s[0]),s[1]+' \u2014 '+s[2])).join('')||'<div class="lrow">No prior surgeries</div>')+
+  '<div class="grp">Obstetric history ('+D.gp(p,n)+' \u00b7 '+ob.tpal+')</div>'+(ob.list.length?'<div style="overflow:auto"><table class="mini"><thead><tr><th>Date</th><th>GA</th><th>Outcome</th><th>Sex / weight</th><th>Anesth.</th><th>Complications</th><th>Hospital</th></tr></thead><tbody>'+ob.list.map(x=>'<tr><td>'+C.mdy(x.end)+'</td><td>'+C.ga(x.lmp,x.end).str+'</td><td>'+esc(x.outcome==='delivered'?x.mode:x.outcome==='sab'?'Spontaneous abortion':x.outcome==='tab'?'Elective termination':'Transferred care')+'</td><td>'+(x.outcome==='delivered'?esc(x.baby)+' '+x.weight+' g':'')+'</td><td>'+esc(x.anes||'')+'</td><td>'+esc((x.risk||[]).join(', ')||(x.lac?x.lac+' laceration':'none'))+'</td><td>'+esc(x.hosp||'')+'</td></tr>').join('')+'</tbody></table></div>':'<div class="lrow">Nulligravida</div>')+(ob.current?'<div class="lrow">Current pregnancy: '+C.ga(ob.current.lmp,n).str+', EDD '+C.mdy(ob.current.edd)+'</div>':'')+
+  '<div class="grp">Gynecologic history</div>'+H.gyn(p,n).map(x=>row(x[0],x[1])).join('')+
+  '<div class="grp">Social history</div>'+H.social(p).map(x=>row(x[0],x[1])).join('')+
+  '<div class="grp">Family history</div>'+H.family(p).map(x=>row(x[0],x[1])).join('')+
+  '<div class="grp">Medication history (started / stopped)</div>'+medList(p).map(m=>row(m.name,'active \u00b7 started '+(m.start||''))).join('')+H.medHistory(p,n).map(m=>row(m.name,C.mdy(m.start)+' \u2013 '+(m.stop?C.mdy(m.stop)+' \u00b7 '+m.why:'')) ).join('')+
+  '<div class="grp">Insurance</div>'+H.insurance(p).map(x=>'<div class="lrow"><div><b>'+esc(x.rank)+': '+esc(x.payer)+'</b><div class="g">Member '+esc(x.member)+' \u00b7 Group '+esc(x.group)+' \u00b7 Subscriber '+esc(x.subscriber)+' \u00b7 Effective '+esc(x.eff)+' \u00b7 Copay '+esc(x.copay)+' \u00b7 '+esc(x.status)+'</div></div></div>').join('');}
  if(k==='quality'){const n2=n;const lastPap=[...labsOf(p)].find(r=>r.code==='PAP');const lastM=[...imgsOf(p)].find(r=>r.code==='MAMMO');const age=C.ageAt(p.dob,n2);
   body='<div class="lrow"><div><b>Cervical cancer screening</b><div class="g">'+(age>65?'Not applicable (age)':lastPap?'Last '+C.mdy(lastPap.day)+(n2-lastPap.day<1095?' - satisfied':' - due'):'No result on file - due')+'</div></div></div><div class="lrow"><div><b>Breast cancer screening</b><div class="g">'+(age<40?'Not applicable (age)':lastM?'Last '+C.mdy(lastM.day)+(n2-lastM.day<730?' - satisfied':' - due'):'No mammogram on file - due')+'</div></div></div>'+(D.pregAt(p,n2)?'<div class="lrow"><div><b>Prenatal depression screening</b><div class="g">'+(C.h01(p.id+'q')<0.8?'Satisfied':'Due')+'</div></div></div>':'');}
  if(k==='care'){body='<div class="lrow"><div><b>'+esc(pv(p.prov).full+', '+pv(p.prov).cred)+'</b><div class="g">Primary OB/GYN provider</div></div></div><div class="lrow"><div><b>'+esc(p.pharm)+'</b><div class="g">Preferred pharmacy (fictitious)</div></div></div><div class="lrow"><div><b>Sim Family Medicine (fictitious)</b><div class="g">PCP</div></div></div>'+(()=>{const pt=SIMPHOTO.partnerFor(p);return pt?'<div class="grp">Emergency contact</div><div class="lrow"><img class="pphoto" src="'+pt.src+'" alt="Photo of fictitious contact" width="34" height="34"><div><b>'+esc(pt.first+' '+pt.last)+'</b><div class="g">'+pt.rel+' &middot; '+pt.age+'yo M &middot; '+esc(pt.phone)+'</div></div></div>':'';})();}
@@ -355,6 +349,9 @@ function bindSimple(p,k){
  const f=$('#cfind');if(f){f.focus();f.oninput=()=>{const r=A.searchPatients(f.value,15);$('#cfindres').innerHTML=r.map(x=>'<a class="vrow" href="#/chart/'+x.id+'"><div class="t">'+esc(x.last.toUpperCase()+', '+x.first)+'</div><div class="g">#'+x.id+' &middot; '+C.mdy(x.dob)+'</div></a>').join('');};}
 }
 
+function docPane(p,d){const t=SIMHIST.docText(d);
+ return '<section class="cdetail" aria-label="Document"><div class="dh"><h2 style="font-size:16px;font-weight:600">'+esc(d.name)+' <span class="gray" style="font-weight:400">('+esc(d.kind)+', received '+C.mdy(d.day)+' via fax)</span></h2><span class="rt">'+(collapsed?'<button class="collapse o" id="expand">&raquo;</button>':'<button class="collapse o" id="collapse2" title="Collapse list">&laquo;</button>')+'</span></div>'+
+ '<div class="dbody"><div class="rdoc"><div class="frow"><span class="l">Source</span><span>'+esc(d.vendor)+'</span></div><div class="frow"><span class="l">Document date</span><span>'+C.mdy(d.day)+'</span></div><div class="frow"><span class="l">Status</span><span>'+(D.itemOpen(d)?'REVIEW':'CLOSED (reviewed)')+'</span></div><div class="frow"><span class="l">Assigned to</span><span>'+esc(upper(d.prov))+'</span></div></div><pre class="docpre">'+esc(t)+'</pre></div></section>';}
 // ---------- main render ----------
 let last={};
 function rerender(){render(last.pid,last.panel,last.item);}
@@ -369,6 +366,7 @@ function render(pid,panel,item){
   if(item.startsWith('case:')){const c=D.patientCases(p.id).find(x=>x.id===item.slice(5));detail=c?casePane(p,c):'';}
   else{const v=visitsOf(p).find(x=>x.id===item);if(v)detail=encounterPane(p,v);}
   side=collapsed?'':visitsPanel(p,item,true);
+ } else if(panel==='history'&&item){const d=D.patientDocs(p).find(x=>x.id===item);cur.doc=item;if(d)detail=docPane(p,d);side=collapsed?'':simplePanel(p,'history').replace('<aside class="cslide wide"','<aside class="cslide wide docked"');cur.doc=null;
  } else if(panel==='results'&&item){const r=findResult(p,item);if(r){resTab=r.kind==='Imaging'?'img':'lab';detail=resultPane(p,r,view);}side=collapsed?'':resultsPanel(p,item,true);}
  const docked=!!detail;
  const opts='<div class="cb-opts"><span>Banner Options <span class="bo-ic">&#9881;</span></span><span class="ham" title="Chart menu"><i></i><i></i><i></i></span></div>';

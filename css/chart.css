@@ -242,3 +242,11 @@ body.chartmode{font-size:14px}
 body.chartmode #topnav{height:26px}body.chartmode .menus>li{font-size:13px}body.chartmode .menus .sub{top:26px}body.chartmode .menus .sub a{font-size:13.5px;padding:5px 14px}
 body.chartmode .uname,body.chartmode .logout{font-size:13px}body.chartmode .brand{font-size:14px}
 body.chartmode #simbanner{font-size:12px}body.chartmode .notify{font-size:13px;min-height:21px}
+/* backfilled record: imaging reports, documents, history rows */
+.imgrep{padding:8px 12px 12px;font-size:14px;line-height:1.5}
+.imgrep h5{margin:10px 0 2px;font-size:12px;letter-spacing:.04em;color:#5b4e78}
+.imgrep p{margin:0}.imgrep ul{margin:2px 0 0 18px;padding:0}.imgrep li{margin:1px 0}
+.imgrep .imp{font-weight:600}.imgrep .imp.abn{color:#c0392b}
+.imgrep table.meas{width:auto;min-width:320px}.imgrep table.meas td:first-child{color:#555;padding-right:18px}
+pre.docpre{white-space:pre-wrap;font:14px/1.5 ui-monospace,Menlo,Consolas,monospace;background:#fff;border:1px solid #ddd;padding:14px 16px;margin:10px 0 60px;color:#222}
+.lrow.hx{display:flex;gap:10px}.lrow.hx .hl{flex:0 0 38%;color:#555}
