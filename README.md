@@ -53,3 +53,15 @@ scheduled range. That means every patient has a past record on every sim date. T
 - **Inbox:** backfilled items are already reviewed (closed). Recent in-range results and documents still arrive unreviewed in the Clinical Inbox.
 
 `tests/coverage.js` checks all 5,200 patients on five sim dates (2025-01-02 to 2027-12-30). Each patient must have at least one past visit, lab, imaging report and outside document. On a sample, the test also checks the depth of the notes, reports, documents and history sections, then opens real chart panels.
+
+
+## Text size and responsive layout
+
+All stylesheet sizes are in `rem` against a fluid root size, `html{font-size:clamp(15px, 12.5px + 0.28vw, 18px)}`. That gives about 15px on phones, 16px on laptops and 18px on 2560 displays, and headings, bars, panels and icons scale with it. Breakpoints:
+- **1240px:** the top nav wraps and the dashboard drops to 2 columns.
+- **1100px:** the inbox detail pane moves under its list.
+- **900px:** tables scroll inside their own container.
+- **760px:** the dashboard and chart landing stack, the banner cells wrap, and slide-outs go full width.
+- **600px:** the chart rail becomes icons only and the menus wrap.
+
+`tests/responsive.js` checks 17 screens at 390, 768, 1024, 1280, 1440, 1920 and 2560 wide. It fails on any horizontal page overflow, any element outside the viewport that isn't inside its own scroll container, and any console error.
