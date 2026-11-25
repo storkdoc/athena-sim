@@ -125,11 +125,11 @@ function scheduleRows(day,pid){
   else if(v.tele)s1=(v.selfCheck?'<b>Self Check-in Completed</b><span class="pipe">|</span>':'')+'Not Online';
   else s1=v.selfCheck&&v.day===D.now.day?'<b>Self Check-in Completed</b>':'';
   rows.push('<div class="appt'+(done?' done':'')+(inoff?' inoffice':'')+(st==='No Show'?' noshow':'')+'" data-appt="'+v.id+'"><span>'+(v.tele?'<span class="tele" title="Telehealth"></span>':'')+'</span><span class="tm">'+C.fmtTime(v.start)+'<small>'+v.dur+'min</small></span>'+avatar(p)+
-   '<span class="who"><div class="nm">'+esc(pname(p,'mi'))+'</div><div class="demo">'+demo(p,day)+'</div></span><span class="st"><div class="s1">'+s1+'</div><div class="reason">'+esc(v.reason+(v.initials?' // '+v.initials:''))+'</div></span></div>');
+   '<span class="who"><div class="nm"><a class="ptname" href="#/chart/'+p.id+'">'+esc(pname(p,'mi'))+'</a></div><div class="demo">'+demo(p,day)+'</div></span><span class="st"><div class="s1">'+s1+'</div><div class="reason">'+esc(v.reason+(v.initials?' // '+v.initials:''))+'</div></span></div>');
  }
  return rows.join('');
 }
-function bindSchedule(root){root.querySelectorAll('[data-appt]').forEach(el=>el.onclick=()=>{const id=el.dataset.appt;const v=D.apptById[id]||(S.get('book:'+id));apptModal(v);});
+function bindSchedule(root){root.querySelectorAll('[data-appt]').forEach(el=>el.onclick=(e)=>{if(e.target.closest('a'))return;const id=el.dataset.appt;const v=D.apptById[id]||(S.get('book:'+id));apptModal(v);});
  root.querySelectorAll('[data-open]').forEach(el=>el.onclick=()=>bookModal(+el.dataset.day,el.dataset.prov,+el.dataset.open));}
 function netMessages(n){const r=C.R('net:'+n);const T=['Simulation note: sample release notes are fictitious','Practice tip (sim): close results with follow-up scheduled','Fictitious webinar: getting the most out of your inbox','Sim office closed on holidays','Sim feature preview: ambient notes for OB/GYN','Register for upcoming (fictitious) webinars','Fall release (sim): new schedule filters'];
  const out=[];for(let k=0;k<4;k++){const d=n-k*r.int(1,2);out.push([d,T[(d*7+k)%T.length]]);}return out;}
@@ -185,7 +185,7 @@ function viewSchedule(){
  $('#sprev').onclick=()=>nav(day-(mode==='week'?7:1));$('#snext').onclick=()=>nav(day+(mode==='week'?7:1));$('#stoday').onclick=()=>nav(D.now.day);
  $('#sdate').onchange=e=>nav(C.fromIso(e.target.value));$('#smode').onchange=e=>go('#/schedule?d='+C.iso(day)+'&view='+e.target.value);
  if($('#sprov'))$('#sprov').onchange=e=>{viewProv=e.target.value;localStorage.setItem('athenaSim.v1.pref.prov',JSON.stringify(viewProv));viewSchedule();};
- document.querySelectorAll('.slot [data-appt]').forEach(el=>el.onclick=()=>apptModal(D.apptById[el.dataset.appt]||S.get('book:'+el.dataset.appt)));
+ document.querySelectorAll('.slot [data-appt]').forEach(el=>el.onclick=(e)=>{if(e.target.closest('a'))return;apptModal(D.apptById[el.dataset.appt]||S.get('book:'+el.dataset.appt));});
  document.querySelectorAll('.slot [data-open]').forEach(el=>el.onclick=()=>bookModal(+el.dataset.day,el.dataset.prov,+el.dataset.open));
  if(o.book==='1'){const fs=freeSlots(day,ME);if(fs.open&&fs.open.length)bookModal(day,ME,fs.open[0]);}
 }
@@ -196,7 +196,7 @@ function daySlots(day,pid){
  const all=new Set([...fs.open,...fs.blocked,...list.map(v=>v.start)]);
  [...all].sort((a,b)=>a-b).forEach(m=>{
   const v=list.find(x=>x.start===m);
-  if(v){const p=D.byId[v.pid];const st=D.apptStatus(v);out.push('<div class="slot" style="min-height:'+(v.dur/10*30)+'px"><div class="t">'+C.fmtTimeC(m)+'</div><div class="b" data-appt="'+v.id+'" style="border-left-color:'+D.ATYPE[v.type].color+'"><b>'+esc(pname(p,'lf'))+'</b>'+statusPill(st)+'<br>'+esc(D.ATYPE[v.type].name)+' &middot; '+esc(v.reason)+(v.tele?' &#128249;':'')+'</div></div>');return;}
+  if(v){const p=D.byId[v.pid];const st=D.apptStatus(v);out.push('<div class="slot" style="min-height:'+(v.dur/10*30)+'px"><div class="t">'+C.fmtTimeC(m)+'</div><div class="b" data-appt="'+v.id+'" style="border-left-color:'+D.ATYPE[v.type].color+'"><a class="ptname" href="#/chart/'+p.id+'"><b>'+esc(pname(p,'lf'))+'</b></a>'+statusPill(st)+'<br>'+esc(D.ATYPE[v.type].name)+' &middot; '+esc(v.reason)+(v.tele?' &#128249;':'')+'</div></div>');return;}
   if(list.some(x=>x.start<m&&m<x.start+x.dur))return;
   if(fs.blocked.includes(m))out.push('<div class="slot blk"><div class="t">'+C.fmtTimeC(m)+'</div><div class="b">Blocked - admin</div></div>');
   else out.push('<div class="slot open"><div class="t">'+C.fmtTimeC(m)+'</div><div class="b" data-open="'+m+'" data-day="'+day+'" data-prov="'+pid+'">Open</div></div>');});
@@ -229,11 +229,11 @@ function viewInbox(folder){
  let list=folder==='Need Followup'?fu.map(x=>x.v.item).filter(Boolean):items.filter(i=>i.folder===folder);
  const sel=o.item?list.find(i=>i.id===o.item)||null:null;
  const fl=D.FOLDERS.map(f=>'<a href="#/inbox/'+encodeURIComponent(f)+(o.all?'?all=1':'')+'" class="'+(f===folder?'on ':'')+(counts[f]?'':'zero')+'"><span>'+esc(f)+'</span><span>'+counts[f]+'</span></a>').join('');
- const rows=list.map(it=>{const p=D.byId[it.pid];return '<tr class="'+(sel&&sel.id===it.id?'sel':'')+'" data-item="'+it.id+'" style="cursor:pointer"><td>'+(it.priority==='High'||it.abn?'<span class="flag" title="Abnormal / high priority">!</span>':'')+'</td><td>'+esc(pname(p,'lf'))+'<br><small>#'+p.id+'</small></td><td>'+esc(itemTitle(it))+'<br><small>'+esc(it.vendor||'')+'</small></td><td>'+C.mdySlash(it.day)+'<br><small>'+C.fmtTime(it.min)+'</small></td><td>'+esc(prov(it.prov).short)+'</td></tr>';}).join('');
+ const rows=list.map(it=>{const p=D.byId[it.pid];return '<tr class="'+(sel&&sel.id===it.id?'sel':'')+'" data-item="'+it.id+'" style="cursor:pointer"><td>'+(it.priority==='High'||it.abn?'<span class="flag" title="Abnormal / high priority">!</span>':'')+'</td><td><a class="ptname" href="#/chart/'+p.id+'">'+esc(pname(p,'lf'))+'</a><br><small>#'+p.id+'</small></td><td>'+esc(itemTitle(it))+'<br><small>'+esc(it.vendor||'')+'</small></td><td>'+C.mdySlash(it.day)+'<br><small>'+C.fmtTime(it.min)+'</small></td><td>'+esc(prov(it.prov).short)+'</td></tr>';}).join('');
  $('#main').innerHTML='<div class="page"><div class="phd"><span>Clinical Inbox</span><span class="right" style="font-size:13px">'+(o.all?'All providers':'My inbox: '+esc(prov(ME).short+' '+prov(ME).cred))+' &middot; <a style="color:#fff;text-decoration:underline" href="#/inbox/'+encodeURIComponent(folder)+(o.all?'':'?all=1')+'">'+(o.all?'Show my inbox':'Show all providers')+'</a></span></div>'+
  '<div class="split three"><nav class="folders" aria-label="Inbox folders">'+fl+'</nav><div class="list"><div class="toolbar"><b>'+esc(folder)+'</b> &middot; '+list.length+' items'+(list.length?'<button class="btn" id="closenorm" style="margin-left:auto" title="Close all items in this folder that are not flagged abnormal">Close all normal</button>':'')+'</div><table class="grid"><thead><tr><th></th><th>Patient</th><th>Item</th><th>Received</th><th>Provider</th></tr></thead><tbody>'+(rows||'')+'</tbody></table>'+(list.length?'':'<div class="empty">No open items in this folder for the sim date.</div>')+'</div>'+
  '<div class="detail" id="idetail">'+(sel?itemDetail(sel):'<div class="empty">Select an item to review.</div>')+'</div></div></div>';
- document.querySelectorAll('[data-item]').forEach(tr=>tr.onclick=()=>go('#/inbox/'+encodeURIComponent(folder)+'?item='+encodeURIComponent(tr.dataset.item)+(o.all?'&all=1':'')));
+ document.querySelectorAll('[data-item]').forEach(tr=>tr.onclick=(e)=>{if(e.target.closest('a'))return;go('#/inbox/'+encodeURIComponent(folder)+'?item='+encodeURIComponent(tr.dataset.item)+(o.all?'&all=1':''));});
  if($('#closenorm'))$('#closenorm').onclick=()=>{let k=0;list.forEach(it=>{if(!it.abn&&it.priority!=='High'&&it.folder!=='Patient in Office'&&it.folder!=='Encounters'){S.merge('inbox:'+it.id,{closed:true,at:D.nowAbs(),by:'sbehram3'});k++;}});notify('Closed '+k+' normal item(s) in '+folder+'.');render();};
  if(sel)bindItem(sel,folder);
 }
@@ -251,7 +251,7 @@ function itemDetail(it){
 }
 function bindItem(it,folder){const p=D.byId[it.pid];
  document.querySelectorAll('#idetail [data-act]').forEach(b=>b.onclick=()=>{const a=b.dataset.act;
-  if(a==='close'){S.merge('inbox:'+it.id,{closed:true,at:D.nowAbs(),by:'sbehram3',followup:false});notify('Closed '+it.name+' for '+pname(p)+'.');go('#/inbox/'+encodeURIComponent(folder));render();}
+  if(a==='close'){S.merge('inbox:'+it.id,{closed:true,at:D.nowAbs(),by:'sbehram3',followup:false});if((it.kind==='Lab'||it.kind==='Imaging')&&window.SIMCHART)SIMCHART.addHistory(it.id,{action:'Closed from Clinical Inbox',status:'CLOSED',assigned:'nobody'});notify('Closed '+it.name+' for '+pname(p)+'.');go('#/inbox/'+encodeURIComponent(folder));render();}
   if(a==='route'){modal('Route item (SIM)','<div class="form-row"><label>Route to</label><select id="rt">'+D.STAFF.concat(D.PROVIDERS.map(x=>x.short+' '+x.cred)).map(s=>'<option>'+esc(s)+'</option>').join('')+'</select></div><div class="form-row"><label>Note</label><textarea id="rtn" rows="3"></textarea></div><div class="actions"><button class="btn primary" id="rtgo">Route</button></div>',bd=>bd.querySelector('#rtgo').onclick=()=>{const to=bd.querySelector('#rt').value;S.merge('inbox:'+it.id,{routed:to,note:bd.querySelector('#rtn').value,closed:true,at:D.nowAbs()});closeModal();notify('Routed '+it.name+' to '+to+'.');go('#/inbox/'+encodeURIComponent(folder));render();});}
   if(a==='followup'){const s=S.get('inbox:'+it.id)||{};S.merge('inbox:'+it.id,{followup:!s.followup,item:it});render();}
   if(a==='note'){const t=prompt('Add note to this item (stored locally in the sim):');if(t){S.merge('inbox:'+it.id,{note:t});render();}}
@@ -427,9 +427,10 @@ function viewAbout(){
 function render(){
  syncNow();updateBanner();
  const r=route();const k=r[0]||'dashboard';
+ document.body.classList.toggle('chartmode',k==='chart');
  try{
  if(k==='dashboard')viewDashboard();else if(k==='schedule')viewSchedule();else if(k==='inbox')viewInbox(r[1]||'Lab / Imaging');
- else if(k==='chart')viewChart(r[1],r[2]);else if(k==='encounter')viewEncounter(r[1]);else if(k==='claims')viewClaims();
+ else if(k==='chart'){if(window.SIMCHART)SIMCHART.render(r[1],r[2],r[3]);else viewChart(r[1],r[2]);}else if(k==='encounter')viewEncounter(r[1]);else if(k==='claims')viewClaims();
  else if(k==='report')viewReport();else if(k==='dashboard-practice')viewPracticeDash();else if(k==='recall')viewRecall();
  else if(k==='openslots')viewOpenSlots();else if(k==='cancellations')viewCancellations();else if(k==='obpatients')viewOB();
  else if(k==='patients')viewPatients();else if(k==='about')viewAbout();
@@ -440,6 +441,7 @@ function render(){
  }catch(e){console.error(e);$('#main').innerHTML='<div class="page"><div class="empty">Sim error: '+esc(e.message)+'</div></div>';}
  updateStatus();
 }
+window.SIMAPP={avatar,pname,plink,prov,demo,notify,modal,closeModal,go,q,render,apptModal,bookModal,freeSlots,searchPatients,problems,meds,allergies,chronic,statusPill,claimTable,card,provWorks};
 window.addEventListener('hashchange',()=>{closeModal();render();});
 // start
 setTimeout(()=>{

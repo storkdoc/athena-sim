@@ -8,10 +8,10 @@ const N_PATIENTS=5200;
 const FIRST=['Avery','Brielle','Camila','Daniela','Elena','Fatima','Gianna','Hana','Imani','Jasmine','Kiara','Leila','Maya','Nadia','Olivia','Priya','Quinn','Rosa','Sofia','Tamara','Uma','Valeria','Wren','Ximena','Yara','Zoe','Adaeze','Bianca','Chloe','Delfina','Esme','Farah','Grace','Helena','Ines','Juliet','Keisha','Lucia','Mariam','Noor','Opal','Paloma','Renata','Selin','Talia','Ursula','Vivian','Wanda','Yesenia','Zainab','Amara','Bea','Celeste','Dahlia','Eden','Freya','Greta','Hazel','Iris','June','Kaya','Lena','Mila','Nora','Odette','Pia','Rhea','Sage','Thea','Vera','Willa','Yuna','Anika','Beatriz','Carmen','Dara','Ebony','Flor','Gloria','Hollis','Ivy','Jada','Kamila','Laila','Mercy','Nia','Oksana','Perla','Rana','Simone','Tiana','Vanessa','Yolanda','Zara'];
 const LAST=['Abernathy','Balderrama','Castellano','Dunleavy','Eskandari','Fairweather','Galloway','Haverford','Ibarrola','Jessup','Kowalczyk','Larkspur','Montclair','Nakashima','Oyelaran','Pemberton','Quintero','Rasmussen','Saltonstall','Thornbury','Underhill','Valcourt','Whitcombe','Yarborough','Zelinsky','Adebayo','Brightwater','Cardenas-Ruiz','Delacroix','Ellsworth','Fenwick','Grantham','Holloway','Iwasaki','Jankowski','Kingsley','Lindqvist','Marchetti','Nwachukwu','Ostrander','Pellegrino','Quarles','Ravensworth','Sorensen','Tolliver','Ulloa','Vanterpool','Wexford','Yamamura','Zubiri','Ashcombe','Blackwood','Coldwell','Draycott','Everly','Fontaine','Goldfinch','Hartigan','Isherwood','Juarez-Lind','Kettering','Lockridge','Merriweather','Northam','Okonkwo','Penhallow','Rutherford','Sandoval-Reyes','Tregarthen','Vasquez-Moll','Winslow','Yeager','Abiodun','Bramwell','Calloway','Desrosiers','Emberly','Fitzroy','Greenhalgh','Hawthorne','Inglewood','Jaramillo','Kilbride','Lovelace','Mbatha','Nightingale','Oduya','Pruett','Rockwell','Stanhope','Treadwell','Valdivia','Westbrook'];
 const PROVIDERS=[
- {id:'P1',last:'BEHRAM',first:'STEVE',cred:'MD',short:'Behram, S',user:'sbehram3',days:[1,2,3,4,5],ampm:{2:'pm'}},
- {id:'P2',last:'OKAFOR',first:'LENA',cred:'MD',short:'Okafor, L',user:'lokafor1',days:[1,2,3,4,5],ampm:{4:'am'}},
- {id:'P3',last:'MARLOWE',first:'JUNE',cred:'CNM',short:'Marlowe, J',user:'jmarlowe',days:[1,2,3,4,5],ampm:{}},
- {id:'P4',last:'TRAN',first:'PRIYA',cred:'NP',short:'Tran, P',user:'ptran2',days:[1,2,3,4],ampm:{}}];
+ {id:'P1',full:'Steven S Behram',bfull:'Steven Behram',last:'BEHRAM',first:'STEVE',cred:'MD',short:'Behram, S',user:'sbehram3',days:[1,2,3,4,5],ampm:{2:'pm'}},
+ {id:'P2',full:'Lena A Okafor',bfull:'Lena Okafor',last:'OKAFOR',first:'LENA',cred:'MD',short:'Okafor, L',user:'lokafor1',days:[1,2,3,4,5],ampm:{4:'am'}},
+ {id:'P3',full:'June M Marlowe',bfull:'June Marlowe',last:'MARLOWE',first:'JUNE',cred:'CNM',short:'Marlowe, J',user:'jmarlowe',days:[1,2,3,4,5],ampm:{}},
+ {id:'P4',full:'Priya K Tran',bfull:'Priya Tran',last:'TRAN',first:'PRIYA',cred:'NP',short:'Tran, P',user:'ptran2',days:[1,2,3,4],ampm:{}}];
 const STAFF=['ajj (MA)','mq (MA)','rv (MA)','cb (MA)','ep (MA)','Front Desk','Billing Team','Nurse Triage','Referral Coordinator'];
 const PAYERS=['CareFirst BCBS (SIM)','Aetna (SIM)','UnitedHealthcare (SIM)','Cigna (SIM)','Maryland Medicaid - Priority Partners (SIM)','Kaiser Permanente MAS (SIM)','Johns Hopkins EHP (SIM)','Self Pay'];
 const PHARM=['SimCare Pharmacy #0412 - Bethesda','Rx Fictional Drug #77 - Rockville','Testwell Pharmacy - Gaithersburg','Mock Mail-Order Pharmacy'];
@@ -60,7 +60,7 @@ function genPatients(){
    pharm:r.pick(PHARM),lang:r.wpick([[85,'English'],[9,'Spanish'],[3,'Amharic'],[3,'Korean']]),
    blood:r.wpick([[37,'O Pos'],[34,'A Pos'],[9,'B Pos'],[4,'AB Pos'],[7,'O Neg'],[6,'A Neg'],[2,'B Neg'],[1,'AB Neg']]),
    gp:{g:0,p:0},preg:[],visits:[],photo:r.int(0,11),
-   portal:r.chance(0.78)};
+   portal:r.chance(0.78),middle:r.pick(['Anne','Marie','Louise','Grace','Rose','Jean','Elise','Joy','Lynn','Kate','Noelle','Faith']),eid:'E'+r.int(1000000,9999999),secondary:r.chance(0.3)?r.pick(['Medicare Secondary (SIM)','Tricare For Life (SIM)','AARP Supplemental (SIM)','Spouse plan - Aetna (SIM)']):null,mobile2:r.chance(0.6)};
   p.email=(p.first+'.'+p.last).toLowerCase().replace(/[^a-z.]/g,'')+'@example.test';
   // pregnancies
   const ageAt=n=>C.ageAt(dob,n);
@@ -283,10 +283,13 @@ const LABDEF={
  GBS:{name:'Group B Strep culture',vendor:'SimQuest Diagnostics',lag:[2,3],comps:r=>r.chance(0.24)?[['GBS','POSITIVE','Negative','','A']]:[['GBS','Negative','Negative','']]},
  PAP:{name:'ThinPrep Pap + HPV (co-test)',vendor:'SimPath Cytology',lag:[5,9],comps:r=>{const res=r.wpick([[86,['NILM','Negative']],[6,['ASC-US','Positive']],[4,['NILM','Positive (HPV 16/18 neg)']],[3,['LSIL','Positive']],[1,['HSIL','Positive']]]);return [['Interpretation',res[0],'NILM','',res[0]!=='NILM'?'A':''],['HR HPV',res[1],'Negative','',res[1]!=='Negative'?'A':'']];}},
  GCCT:{name:'Chlamydia/Gonorrhea NAA',vendor:'SimQuest Diagnostics',lag:[2,3],comps:r=>r.chance(0.03)?[['Chlamydia','Detected','Not detected','','A'],['Gonorrhea','Not detected','Not detected','']]:[['Chlamydia','Not detected','Not detected',''],['Gonorrhea','Not detected','Not detected','']]},
- TSH:{name:'TSH',vendor:'SimQuest Diagnostics',lag:[1,2],comps:r=>{const t=+(r.f()<0.1?r.range(4.6,9):r.range(0.6,4.2)).toFixed(2);return [['TSH',t,'0.45-4.50','uIU/mL',t>4.5?'H':'']];}},
- LIPID:{name:'Lipid Panel',vendor:'SimQuest Diagnostics',lag:[1,2],comps:r=>{const ldl=r.int(70,175);return [['Total Cholesterol',ldl+r.int(60,90),'100-199','mg/dL'],['LDL',ldl,'0-99','mg/dL',ldl>99?'H':''],['HDL',r.int(38,85),'>39','mg/dL'],['Triglycerides',r.int(60,210),'0-149','mg/dL']];}},
+ TSH:{name:'TSH rfx on abnormal to free T4',comment:'Reflex to free T4 performed when TSH is outside 0.450-4.500 uIU/mL (SIM).',vendor:'SimQuest Diagnostics',lag:[1,2],comps:r=>{const t=+(r.f()<0.1?r.range(4.6,9):r.range(0.6,4.2)).toFixed(2);return [['TSH',t,'0.45-4.50','uIU/mL',t>4.5?'H':'']];}},
+ LIPID:{name:'lipid panel',comment:'Fasting status reported by patient. Desirable total cholesterol <200 mg/dL.',vendor:'SimQuest Diagnostics',lag:[1,2],comps:r=>{const ldl=r.int(70,175);return [['Total Cholesterol',ldl+r.int(60,90),'100-199','mg/dL'],['LDL',ldl,'0-99','mg/dL',ldl>99?'H':''],['HDL',r.int(38,85),'>39','mg/dL'],['Triglycerides',r.int(60,210),'0-149','mg/dL']];}},
  WETMT:{name:'Vaginal pathogens panel (BV/Candida/Trich)',vendor:'SimQuest Diagnostics',lag:[1,2],comps:r=>[['Gardnerella (BV)',r.chance(0.45)?'Positive':'Negative','Negative','',''],['Candida',r.chance(0.25)?'Positive':'Negative','Negative',''],['Trichomonas','Negative','Negative','']]},
- UA:{name:'Urinalysis w/ reflex',vendor:'SimQuest Diagnostics',lag:[1,1],comps:r=>[['Leukocyte esterase',r.chance(0.4)?'2+':'Negative','Negative',''],['Nitrite',r.chance(0.3)?'Positive':'Negative','Negative','']]},
+ UA:{name:'urinalysis, dipstick',vendor:'SimQuest Diagnostics',lag:[1,1],comps:r=>[['Leukocyte esterase',r.chance(0.4)?'2+':'Negative','Negative',''],['Nitrite',r.chance(0.3)?'Positive':'Negative','Negative','']]},
+ ESTRADIOL:{name:'estradiol',vendor:'SimQuest Diagnostics',lag:[1,3],comps:(r,p,v)=>{const post=C.ageAt(p.dob,v.day)>=50;const e=post&&r.chance(0.5)?'<5.0':String(post?r.int(5,40):r.int(30,250));return [['Estradiol',e,'See comment','pg/mL','']];},comment:'ESTRADIOL REFERENCE RANGES (pg/mL)\n  Follicular phase ........ 19 - 144\n  Mid-cycle peak .......... 64 - 357\n  Luteal phase ............ 56 - 214\n  Postmenopausal .......... <5.0 - 32\n\nMethod: electrochemiluminescence immunoassay (SIM method note).'},
+ FSHLH:{name:'FSH and LH',vendor:'SimQuest Diagnostics',lag:[1,2],comps:(r,p,v)=>{const post=C.ageAt(p.dob,v.day)>=50;const f=post?r.int(30,110):+(r.range(3,12).toFixed(1));const l=post?r.int(15,60):+(r.range(2,14).toFixed(1));return [['FSH',f,'See comment','mIU/mL',''],['LH',l,'See comment','mIU/mL','']];},comment:'FSH (mIU/mL): follicular 3.5-12.5 | mid-cycle 4.7-21.5 | luteal 1.7-7.7 | postmenopausal 25.8-134.8\nLH  (mIU/mL): follicular 2.4-12.6 | mid-cycle 14.0-95.6 | luteal 1.0-11.4 | postmenopausal 7.7-58.5'},
+ A1C:{name:'hemoglobin A1C',vendor:'SimQuest Diagnostics',lag:[1,2],comps:r=>{const a=+(r.f()<0.15?r.range(5.7,7.4):r.range(4.6,5.6)).toFixed(1);return [['Hemoglobin A1c',a,'4.8-5.6','%',a>5.6?'H':'']];},comment:'Prediabetes: 5.7 - 6.4 %\nDiabetes: >6.4 %\nGlycemic control for adults with diabetes: <7.0 %'},
  BIOPSY:{name:'Surgical pathology - cervical biopsy',vendor:'SimPath Cytology',lag:[6,10],comps:r=>[['Diagnosis',r.wpick([[55,'LSIL (CIN 1)'],[25,'Benign cervical tissue'],[20,'HSIL (CIN 2)']]),'','','A']]},
 };
 const IMGDEF={
@@ -314,12 +317,13 @@ function ordersFor(v){
   if(/GBS/.test(v.reason))o.push(['L','GBS']);
   if(wk>=30&&v.preg.risk.length&&h01(v.id+'g')<0.5)o.push(['I','GROWTH']);
  }
- if(v.type==='WWV'){o.push(['L','PAP']);if(C.ageAt(p.dob,v.day)<26)o.push(['L','GCCT']);if(C.ageAt(p.dob,v.day)>=40)o.push(['I','MAMMO']);if(C.ageAt(p.dob,v.day)>=45&&h01(v.id+'l')<0.5)o.push(['L','LIPID'],['L','TSH']);}
+ if(v.type==='WWV'){o.push(['L','PAP']);if(C.ageAt(p.dob,v.day)<26)o.push(['L','GCCT']);if(C.ageAt(p.dob,v.day)>=40)o.push(['I','MAMMO']);if(C.ageAt(p.dob,v.day)>=45&&h01(v.id+'l')<0.5)o.push(['L','LIPID'],['L','TSH'],['L','A1C']);}
  if(v.type==='PROB'||v.type==='TELE'){
   if(/vaginosis|irritation/.test(v.reason))o.push(['L','WETMT']);
   if(/UTI/.test(v.reason))o.push(['L','UA'],['L','UCX']);
   if(/bleeding|pelvic pain|Menometr|dysmen/.test(v.reason))o.push(['I','PELV'],['L','CBC']);
-  if(/menopause|PCOS/.test(v.reason))o.push(['L','TSH']);
+  if(/menopause|PCOS|HRT/.test(v.reason))o.push(['L','TSH'],['L','ESTRADIOL'],['L','FSHLH']);
+  if(/UTI/.test(v.reason)===false&&/postmeno/.test(v.reason))o.push(['I','PELV']);
  }
  if(v.type==='US')o.push(['I','PELV']);
  if(v.type==='COLPO')o.push(['L','BIOPSY']);
@@ -333,11 +337,11 @@ function makeResult(v,k,idx){
  if(kind==='L'){
   const d=LABDEF[code];const lag=r.int(d.lag[0],d.lag[1]);
   const comps=d.comps(r,p,v);const abn=comps.some(c=>c[4]);
-  return {id:'R'+v.id.slice(1)+'-'+idx,kind:'Lab',code,name:d.name,vendor:d.vendor,pid:v.pid,visit:v.id,prov:v.prov,collected:v.day,
+  return {id:'R'+v.id.slice(1)+'-'+idx,num:1200000000+Math.floor(h01('rn'+v.id+code)*99999999),comment:d.comment||'',fasting:r.chance(0.3)?'YES':'NO',kind:'Lab',code,name:d.name,vendor:d.vendor,pid:v.pid,visit:v.id,prov:v.prov,collected:v.day,
    day:v.day+lag,min:r.int(5*60,23*60),comps,abn,folder:'Lab / Imaging',priority:abn&&comps.some(c=>/HSIL|POSITIVE|Detected|BI-RADS 0|>100,000/.test(c[1]))?'High':'Normal'};
  }
  const d=IMGDEF[code];const text=d.text(r,p,v);const abn=d.abn?d.abn(text):false;
- return {id:'R'+v.id.slice(1)+'-'+idx,kind:'Imaging',code,name:d.name,vendor:d.site,pid:v.pid,visit:v.id,prov:v.prov,collected:v.day+(code==='MAMMO'?r.int(3,20):0),
+ return {id:'R'+v.id.slice(1)+'-'+idx,num:1200000000+Math.floor(h01('rn'+v.id+code)*99999999),kind:'Imaging',code,name:d.name,vendor:d.site,pid:v.pid,visit:v.id,prov:v.prov,collected:v.day+(code==='MAMMO'?r.int(3,20):0),
    day:v.day+(code==='MAMMO'?r.int(4,22):r.int(0,1)),min:r.int(8*60,19*60),text,abn,folder:'Lab / Imaging',priority:abn?'High':'Normal'};
 }
 const resCache={};
@@ -378,6 +382,9 @@ function dailyItems(n){
 }
 dailyItems.c={};
 
+let caseIdx=null;
+function patientCases(pid){if(!caseIdx){caseIdx={};for(let n=RANGE_START;n<=RANGE_END;n++)for(const it of dailyItems(n)){(caseIdx[it.pid]=caseIdx[it.pid]||[]).push(it);}}
+ return (caseIdx[pid]||[]).filter(it=>abs(it.day,it.min)<=nowAbs());}
 // ---------- inbox ----------
 const FOLDERS=['Patient in Office','Encounters','Appointment Requests','Patient Cases','Orders / Rxs / Auths','Lab / Imaging','Clinical Documents','Admin / Phone Messages','Unknown Documents','Need Followup'];
 const AUTOCLOSE_DAYS=14;
@@ -477,6 +484,6 @@ function nextAppt(p,n){for(const v of p.visits){if(v.day>=n&&v.fate!=='noshow'&&
 G.SIMDATA={SEED,RANGE_START,RANGE_END,PROVIDERS,STAFF,PAYERS,ATYPE,FOLDERS,patients,byId,schedule,apptById,
  init(){genPatients();genVisits();},setNow,get now(){return SIM_NOW;},nowAbs,abs,apptStatus,isDone,COMPLETED,isClinicDay,
  activePreg,pregAt,postpartum,lastPregBefore,gp,dayAppts,addedAppts,vitals,resultsForVisit,patientResults,patientDocs,
- inboxItems,inboxCounts,itemOpen,claimFor,claimStatus,claimsWindow,deliveryClaim,obCensus,lastSeen,nextAppt,RX,
+ inboxItems,inboxCounts,itemOpen,patientCases,LABDEF,AUTOCLOSE_DAYS,claimFor,claimStatus,claimsWindow,deliveryClaim,obCensus,lastSeen,nextAppt,RX,
  provById:id=>PROVIDERS.find(p=>p.id===id)};
 })(window);
