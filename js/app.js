@@ -17,7 +17,9 @@ function setSimDay(n){n=Math.min(D.RANGE_END,Math.max(D.RANGE_START,n));localSto
 function pname(p,style){if(!p)return '';return style==='lf'?p.last.toUpperCase()+', '+p.first.toUpperCase():p.first+' '+(style==='mi'?p.mi+' ':'')+p.last;}
 function demo(p,n){return C.ageAt(p.dob,n)+'yo F | '+C.mdy(p.dob);}
 const AVC=['#9c8f86','#7f8fa6','#a08572','#8b9a7e','#a5868f','#7d8b8b','#9a8fa8','#8f8070','#7f9aa0','#a39079','#8c7f99','#999'];
-function avatar(p){if(p.photo%4===0)return '<span class="av">'+esc(p.first[0]+p.last[0])+'</span>';
+function avatar(p){const ph=window.SIMPHOTO?SIMPHOTO.forPatient(p):{mode:p.photo%4===0?'initials':'silhouette'};
+ if(ph.mode==='photo')return '<span class="av"><img src="'+ph.src+'" alt="Photo of '+esc(pname(p))+' (AI-generated, fictitious)" loading="lazy" width="46" height="46"></span>';
+ if(ph.mode==='initials')return '<span class="av">'+esc(p.first[0]+p.last[0])+'</span>';
  const c=AVC[p.photo%AVC.length];return '<span class="av" style="background:#dcdcdf"><svg viewBox="0 0 46 46" aria-hidden="true"><rect width="46" height="46" fill="#e4e2e6"/><circle cx="23" cy="18" r="9" fill="'+c+'"/><path d="M6 46c1-10 8-15 17-15s16 5 17 15z" fill="'+c+'"/></svg></span>';}
 function plink(p,txt){return '<a href="#/chart/'+p.id+'">'+esc(txt||pname(p))+'</a>';}
 function prov(id){return D.provById(id)||{short:id,last:id,first:'',cred:''};}

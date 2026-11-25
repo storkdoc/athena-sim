@@ -30,3 +30,10 @@ Live: https://storkdoc.github.io/athena-sim/
 ## Tests
 `node tests/smoke.js` (Playwright Chromium, with `BASE` pointing at a local server) checks every screen for console errors
 and exercises the close, check-in, book and date-move flows.
+
+## Patient photos
+`photos/` holds 64 AI-generated headshots (160 px WebP, about 2 KB each) of **people who do not exist**. They were made with an
+image generator for this simulation and are not photos of any real person. `js/photos.js` gives each patient one photo,
+chosen deterministically from the patient ID by sex and age band (age as of 2026-01-01). About 17% of patients get the gray
+silhouette and about 6% get an initials tile, as in real charts. Male headshots are used for fictitious partners and
+emergency contacts.
